@@ -259,7 +259,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ---
 
-### 3. WebAssembly & Browser TypeScript SDK
+### 3. Python SDK (PyO3 Native FFI)
+
+PaperFlux provides native Python bindings compiled directly from Rust for high throughput:
+
+```python
+import paperflux
+
+# Convert from file
+result = paperflux.convert("document.pdf", dialect="gfm", detect_tables=True)
+print(result.markdown)
+print(f"Confidence: {result.confidence:.2f}")
+
+# Convert from memory bytes in high-throughput mode
+with open("paper.pdf", "rb") as f:
+    pdf_bytes = f.read()
+
+result = paperflux.convert_bytes(pdf_bytes, profile="fast")
+print(f"Processed {result.total_pages} pages ({result.tables_detected} tables detected).")
+```
+
+---
+
+### 4. WebAssembly & Browser TypeScript SDK
 
 Process PDFs directly in client browsers via WebAssembly and WebWorkers without server uploads:
 

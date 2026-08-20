@@ -13,6 +13,7 @@ members = [
     "crates/pdf2md-cli",
     "crates/pdf2md-wasm",
     "crates/pdf2md-http",
+    "crates/pdf2md-python",
 ]
 
 [workspace.package]

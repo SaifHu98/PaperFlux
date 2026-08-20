@@ -1,0 +1,31 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "paperflux"
+version = "0.1.0"
+description = "High-Performance Universal PDF Intelligence Engine with Arabic-First Capabilities"
+authors = [{ name = "EcoUni Systems", email = "dev@ecouni.org" }]
+license = { text = "MIT OR Apache-2.0" }
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+[tool.maturin]
+manifest-path = "crates/pdf2md-python/Cargo.toml"
+module-name = "paperflux"
+binding = "pyo3"
+features = ["pyo3/extension-module"]

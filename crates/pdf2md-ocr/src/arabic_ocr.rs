@@ -45,6 +45,8 @@ pub struct ArabicPagePreflight {
     pub has_handwriting_indicators: bool,
     pub is_damaged_or_noisy: bool,
     pub is_bilingual: bool,
+    pub is_calligraphic: bool,
+    pub calligraphic_script: Option<String>,
     pub native_text_quality: f32,
     pub arabic_char_count: usize,
     pub latin_char_count: usize,
@@ -107,7 +109,10 @@ impl ArabicOcrDecisionEngine {
         let spans = &page.text_spans;
         let images = &page.images;
 
-        // 1. Check if page is image-only (scanned document)
+        // 1. Check calligraphic script indicators (Nastaliq, Diwani, Thuluth, Ruq'ah)
+        let calligraphy = crate::calligraphy::CalligraphyDetector::detect(page);
+
+        // 2. Check if page is image-only (scanned document)
         if spans.is_empty() {
             let preflight = ArabicPagePreflight {
                 orientation_degrees: 0.0,
@@ -116,6 +121,8 @@ impl ArabicOcrDecisionEngine {
                 has_handwriting_indicators: false,
                 is_damaged_or_noisy: false,
                 is_bilingual: false,
+                is_calligraphic: calligraphy.is_calligraphic,
+                calligraphic_script: calligraphy.script_type.map(|s| format!("{:?}", s)),
                 native_text_quality: 0.0,
                 arabic_char_count: 0,
                 latin_char_count: 0,
@@ -130,7 +137,7 @@ impl ArabicOcrDecisionEngine {
             };
         }
 
-        // 2. Extract and analyze native text quality
+        // 3. Extract and analyze native text quality
         let full_text: String = spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
         let quality_report = TextQualityAssessor::assess(&full_text);
 
@@ -148,27 +155,25 @@ impl ArabicOcrDecisionEngine {
         let is_bilingual = arabic_count > 0 && latin_count > 0 && (latin_count as f32 / (arabic_count + latin_count) as f32) > 0.15;
         let native_quality = quality_report.quality_score;
 
+        let estimated_dpi = if calligraphy.is_calligraphic {
+            calligraphy.recommended_dpi
+        } else {
+            150
+        };
+
         let preflight = ArabicPagePreflight {
             orientation_degrees: 0.0,
             skew_degrees: 0.0,
-            estimated_dpi: 300,
+            estimated_dpi,
             has_handwriting_indicators: false,
             is_damaged_or_noisy: quality_report.replacement_char_count > 0,
             is_bilingual,
+            is_calligraphic: calligraphy.is_calligraphic,
+            calligraphic_script: calligraphy.script_type.map(|s| format!("{:?}", s)),
             native_text_quality: native_quality,
             arabic_char_count: arabic_count,
             latin_char_count: latin_count,
         };
-
-        // 3. High quality clean digital text -> Skip OCR completely
-        if native_quality >= 0.88 && quality_report.pua_char_count == 0 {
-            return ArabicOcrDecision::SkipOcr {
-                reason: format!(
-                    "High-fidelity Arabic digital text (Quality: {:.2}, {} chars, dialect: {:?})",
-                    native_quality, arabic_count, dialect
-                ),
-            };
-        }
 
         // 4. Heavily corrupted font stream / PUA leakage -> Require OCR
         if native_quality < 0.50 || quality_report.pua_char_count > 10 {
@@ -181,7 +186,30 @@ impl ArabicOcrDecisionEngine {
             };
         }
 
-        // 5. Intermediate quality -> Fuse native and OCR streams
+        // 5. Calligraphic script with raster image or moderate quality -> Require 300+ DPI OCR / Fusion
+        if calligraphy.is_calligraphic && (!images.is_empty() || native_quality < 0.95) {
+            return ArabicOcrDecision::RequireOcr {
+                preflight,
+                reason: format!(
+                    "Calligraphic script ({}) detected requiring {} DPI OCR resolution: {}",
+                    calligraphy.script_type.map(|s| format!("{:?}", s)).unwrap_or_else(|| "Calligraphy".to_string()),
+                    estimated_dpi,
+                    calligraphy.reason
+                ),
+            };
+        }
+
+        // 6. High quality clean digital text -> Skip OCR completely
+        if native_quality >= 0.88 && quality_report.pua_char_count == 0 {
+            return ArabicOcrDecision::SkipOcr {
+                reason: format!(
+                    "High-fidelity Arabic digital text (Quality: {:.2}, {} chars, dialect: {:?})",
+                    native_quality, arabic_count, dialect
+                ),
+            };
+        }
+
+        // 7. Intermediate quality -> Fuse native and OCR streams
         ArabicOcrDecision::FuseStreams {
             native_quality,
             expected_ocr_weight: 1.0 - native_quality,

@@ -16,6 +16,8 @@ pub struct Config {
     pub detect_tables: bool,
     pub ocr_mode: OcrMode,
     pub ocr_provider: Option<Arc<dyn OCRProvider>>,
+    pub ocr_dpi: Option<u32>,
+    pub auto_calligraphy_dpi_boost: bool,
     pub security_limits: SecurityLimits,
     pub deterministic: bool,
     pub enable_caching: bool,
@@ -33,6 +35,8 @@ impl Default for Config {
             detect_tables: true,
             ocr_mode: OcrMode::Auto,
             ocr_provider: None,
+            ocr_dpi: None,
+            auto_calligraphy_dpi_boost: true,
             security_limits: SecurityLimits::default(),
             deterministic: true,
             enable_caching: true,
@@ -94,6 +98,16 @@ impl ConfigBuilder {
 
     pub fn ocr_provider(mut self, provider: Arc<dyn OCRProvider>) -> Self {
         self.config.ocr_provider = Some(provider);
+        self
+    }
+
+    pub fn ocr_dpi(mut self, dpi: u32) -> Self {
+        self.config.ocr_dpi = Some(dpi);
+        self
+    }
+
+    pub fn auto_calligraphy_dpi_boost(mut self, boost: bool) -> Self {
+        self.config.auto_calligraphy_dpi_boost = boost;
         self
     }
 

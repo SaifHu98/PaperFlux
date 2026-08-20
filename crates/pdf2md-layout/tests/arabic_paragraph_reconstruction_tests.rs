@@ -89,3 +89,26 @@ fn test_arabic_paragraph_continuation_and_boundaries() {
     assert!(paragraphs[1].contains("المادة الأولى:"));
     assert!(paragraphs[1].contains("معايير الشفافية المطلوبة."));
 }
+
+#[test]
+fn test_statistical_line_gap_clustering() {
+    // 2 paragraphs:
+    // Para 1: 3 lines with normal intra-gap 14pt (y: 100, 114, 128)
+    // Inter-paragraph gap: 30pt (y: 158)
+    // Para 2: 2 lines with normal intra-gap 14pt (y: 158, 172)
+    let lines_with_geo = vec![
+        ("السطر الأول من الفقرة الأولى.".to_string(), 100.0, 12.0),
+        ("السطر الثاني التابع لنفس الفقرة.".to_string(), 114.0, 12.0),
+        ("السطر الثالث المكمل للفقرة الأولى.".to_string(), 128.0, 12.0),
+        ("بداية الفقرة الثانية بعد مسافة عمودية واضحة.".to_string(), 158.0, 12.0),
+        ("تكملة السطر الأخير في الفقرة الثانية.".to_string(), 172.0, 12.0),
+    ];
+
+    let paragraphs = ArabicParagraphReconstructor::reconstruct_paragraphs_with_geometry(&lines_with_geo, None);
+
+    assert_eq!(paragraphs.len(), 2, "Statistical clustering should detect 2 distinct paragraphs");
+    assert!(paragraphs[0].contains("السطر الأول"));
+    assert!(paragraphs[0].contains("السطر الثالث"));
+    assert!(paragraphs[1].contains("بداية الفقرة الثانية"));
+    assert!(paragraphs[1].contains("تكملة السطر الأخير"));
+}

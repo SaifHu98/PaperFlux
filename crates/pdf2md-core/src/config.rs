@@ -14,6 +14,7 @@ pub struct Config {
     pub extract_images: bool,
     pub images_dir: Option<PathBuf>,
     pub detect_tables: bool,
+    pub paragraph_gap_threshold: Option<f32>,
     pub ocr_mode: OcrMode,
     pub ocr_provider: Option<Arc<dyn OCRProvider>>,
     pub ocr_dpi: Option<u32>,
@@ -33,6 +34,7 @@ impl Default for Config {
             extract_images: false,
             images_dir: None,
             detect_tables: true,
+            paragraph_gap_threshold: None,
             ocr_mode: OcrMode::Auto,
             ocr_provider: None,
             ocr_dpi: None,
@@ -88,6 +90,11 @@ impl ConfigBuilder {
 
     pub fn detect_tables(mut self, detect: bool) -> Self {
         self.config.detect_tables = detect;
+        self
+    }
+
+    pub fn paragraph_gap_threshold(mut self, threshold: f32) -> Self {
+        self.config.paragraph_gap_threshold = Some(threshold);
         self
     }
 

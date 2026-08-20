@@ -23,6 +23,13 @@ impl Default for LayoutEngine {
 }
 
 impl LayoutEngine {
+    pub fn with_paragraph_gap_threshold(mut self, threshold: Option<f32>) -> Self {
+        if let Some(t) = threshold {
+            self.para_reconstructor.line_spacing_threshold = t;
+        }
+        self
+    }
+
     pub fn analyze_page(&self, page: &RawPage) -> Section {
         let mut section = Section::new(page.page_number);
 

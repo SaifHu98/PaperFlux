@@ -48,7 +48,7 @@ impl Pipeline {
             base_url: None,
         });
 
-        let layout_engine = LayoutEngine::default();
+        let layout_engine = LayoutEngine::default().with_paragraph_gap_threshold(self.config.paragraph_gap_threshold);
         let ocr_decision = OcrDecisionEngine {
             mode: self.config.ocr_mode,
             min_text_chars_threshold: 20,

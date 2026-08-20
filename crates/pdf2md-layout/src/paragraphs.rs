@@ -55,6 +55,13 @@ impl ParagraphReconstructor {
         }
 
         let lines = group_spans_into_lines(spans);
+        let mut gaps = Vec::new();
+        for i in 0..lines.len().saturating_sub(1) {
+            let gap = (lines[i + 1].y - lines[i].y).abs();
+            gaps.push(gap);
+        }
+        let gap_stats = crate::arabic_paragraph::ArabicParagraphReconstructor::analyze_line_gaps(&gaps);
+
         let mut nodes = Vec::new();
         let mut current_para_lines: Vec<TextLine> = Vec::new();
         let mut current_list_items: Vec<(bool, Option<String>, String, usize)> = Vec::new();
@@ -92,12 +99,19 @@ impl ParagraphReconstructor {
                 continue;
             }
 
-            // Check paragraph break via line spacing
+            // Check paragraph break via line spacing & statistical clustering
             if let Some(prev_line) = current_para_lines.last() {
                 let vertical_gap = (line.y - prev_line.y).abs();
                 let avg_height = (line.height + prev_line.height) / 2.0;
 
-                if vertical_gap > avg_height * self.line_spacing_threshold {
+                let is_break = crate::arabic_paragraph::ArabicParagraphReconstructor::classify_gap(
+                    vertical_gap,
+                    avg_height,
+                    &gap_stats,
+                    Some(self.line_spacing_threshold),
+                ) == crate::arabic_paragraph::GapClassification::InterParagraph;
+
+                if is_break {
                     nodes.push(self.create_paragraph_node(&current_para_lines));
                     current_para_lines.clear();
                 }

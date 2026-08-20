@@ -41,6 +41,14 @@ struct Cli {
     #[arg(long = "ocr", default_value = "auto")]
     ocr: OcrArg,
 
+    /// OCR languages to recognize (e.g. ara+eng, ara, fas, urd)
+    #[arg(long = "ocr-lang", default_value = "ara+eng")]
+    ocr_lang: String,
+
+    /// Custom path to OCR binary (e.g. path to tesseract executable)
+    #[arg(long = "ocr-binary")]
+    ocr_binary: Option<PathBuf>,
+
     /// Output machine-readable diagnostics JSON to the specified file
     #[arg(long = "diagnostics-json")]
     diagnostics_json: Option<PathBuf>,
@@ -142,6 +150,19 @@ fn main() {
 
     if let Some(img_dir) = cli.images_dir {
         builder = builder.images_dir(img_dir);
+    }
+
+    if let Some(ocr_bin) = cli.ocr_binary {
+        let prov = std::sync::Arc::new(pdf2md_ocr::SystemTesseractOCRProvider::with_binary(
+            ocr_bin,
+            &cli.ocr_lang,
+        ));
+        builder = builder.ocr_provider(prov);
+    } else if !cli.ocr_lang.is_empty() && cli.ocr_lang != "ara+eng" {
+        let prov = std::sync::Arc::new(pdf2md_ocr::SystemTesseractOCRProvider::with_languages(
+            &cli.ocr_lang,
+        ));
+        builder = builder.ocr_provider(prov);
     }
 
     let config = builder.build();

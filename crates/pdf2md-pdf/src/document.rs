@@ -126,16 +126,17 @@ fn extract_pdf_string_value(slice: &[u8]) -> Option<String> {
     let start = slice.iter().position(|&b| b == b'(')?;
     let end = slice[start..].iter().position(|&b| b == b')')? + start;
     if end > start {
-        Some(String::from_utf8_lossy(&slice[start + 1..end]).trim().to_string())
+        Some(
+            String::from_utf8_lossy(&slice[start + 1..end])
+                .trim()
+                .to_string(),
+        )
     } else {
         None
     }
 }
 
-fn extract_pages(
-    raw_bytes: &[u8],
-    limits: &SecurityLimits,
-) -> Result<Vec<RawPage>, PdfError> {
+fn extract_pages(raw_bytes: &[u8], limits: &SecurityLimits) -> Result<Vec<RawPage>, PdfError> {
     let mut raw_pages = Vec::new();
     let mut page_num = 1;
 
@@ -153,8 +154,8 @@ fn extract_pages(
         }
 
         // Find enclosing object `n m obj ... endobj`
-        let obj_start = rfind_subslice(&raw_bytes[..abs_pos], b"obj")
-            .unwrap_or(abs_pos.saturating_sub(100));
+        let obj_start =
+            rfind_subslice(&raw_bytes[..abs_pos], b"obj").unwrap_or(abs_pos.saturating_sub(100));
         let obj_end = find_subslice(&raw_bytes[abs_pos..], b"endobj")
             .map(|p| abs_pos + p)
             .unwrap_or(raw_bytes.len());
@@ -209,7 +210,8 @@ fn extract_pages(
                 let stream_body_end = stream_body_start + end_stream;
                 if stream_body_end <= raw_bytes.len() {
                     let raw_slice = &raw_bytes[stream_body_start..stream_body_end];
-                    if let Ok(decompressed) = decode_stream(raw_slice, Some("FlateDecode"), limits) {
+                    if let Ok(decompressed) = decode_stream(raw_slice, Some("FlateDecode"), limits)
+                    {
                         parser.parse_content_stream(&decompressed, &mut fallback_page);
                     } else {
                         parser.parse_content_stream(raw_slice, &mut fallback_page);
@@ -246,7 +248,11 @@ fn parse_mediabox(dict: &[u8]) -> Option<(f32, f32)> {
     }
 }
 
-fn extract_fonts_for_page(raw_bytes: &[u8], _page_dict: &[u8], fonts: &mut HashMap<String, FontMap>) {
+fn extract_fonts_for_page(
+    raw_bytes: &[u8],
+    _page_dict: &[u8],
+    fonts: &mut HashMap<String, FontMap>,
+) {
     let mut search = 0;
     let base_font_pat = b"/BaseFont";
     while let Some(pos) = find_subslice(&raw_bytes[search..], base_font_pat) {
@@ -265,7 +271,8 @@ fn extract_fonts_for_page(raw_bytes: &[u8], _page_dict: &[u8], fonts: &mut HashM
             let cmap_end = find_subslice(&raw_bytes[cmap_start..], b"endcmap")
                 .map(|p| cmap_start + p)
                 .unwrap_or(raw_bytes.len().min(cmap_start + 4096));
-            font_map.parse_to_unicode_cmap(&String::from_utf8_lossy(&raw_bytes[cmap_start..cmap_end]));
+            font_map
+                .parse_to_unicode_cmap(&String::from_utf8_lossy(&raw_bytes[cmap_start..cmap_end]));
         }
 
         fonts.insert(font_id, font_map);
@@ -284,7 +291,8 @@ fn extract_contents_stream(
     // 1. Direct stream in page dictionary
     if let Some(stream_pos) = find_subslice(page_dict, b"stream") {
         let mut start_pos = stream_pos + 6;
-        if page_dict.get(start_pos) == Some(&b'\r') && page_dict.get(start_pos + 1) == Some(&b'\n') {
+        if page_dict.get(start_pos) == Some(&b'\r') && page_dict.get(start_pos + 1) == Some(&b'\n')
+        {
             start_pos += 2;
         } else if page_dict.get(start_pos) == Some(&b'\n') {
             start_pos += 1;
@@ -301,7 +309,8 @@ fn extract_contents_stream(
 
     // 2. Indirect stream reference `/Contents 12 0 R`
     if let Some(contents_idx) = find_subslice(page_dict, b"/Contents") {
-        let token_slice = &page_dict[contents_idx + 9..contents_idx + 40.min(page_dict.len() - contents_idx)];
+        let token_slice =
+            &page_dict[contents_idx + 9..contents_idx + 40.min(page_dict.len() - contents_idx)];
         let token_str = String::from_utf8_lossy(token_slice);
         let parts: Vec<&str> = token_str.split_whitespace().take(3).collect();
         if parts.len() >= 2 && parts[1] == "0" {
@@ -318,10 +327,13 @@ fn extract_contents_stream(
                         stream_start += 1;
                     }
 
-                    if let Some(stream_end_rel) = find_subslice(&obj_slice[stream_start..], b"endstream") {
+                    if let Some(stream_end_rel) =
+                        find_subslice(&obj_slice[stream_start..], b"endstream")
+                    {
                         let stream_end = stream_start + stream_end_rel;
                         let raw_slice = &obj_slice[stream_start..stream_end];
-                        let is_flate = find_subslice(&obj_slice[..stream_start], b"/FlateDecode").is_some();
+                        let is_flate =
+                            find_subslice(&obj_slice[..stream_start], b"/FlateDecode").is_some();
                         let filter = if is_flate { Some("FlateDecode") } else { None };
                         let decoded = decode_stream(raw_slice, filter, limits)?;
                         return Ok(Some(decoded));
@@ -374,15 +386,21 @@ fn extract_images_for_page(
                 .unwrap_or(raw_bytes.len());
             let obj_bytes = &raw_bytes[obj_pos..obj_end];
 
-            if find_subslice(obj_bytes, b"/Subtype /Image").is_some() || find_subslice(obj_bytes, b"/Subtype/Image").is_some() {
-                let width = parse_dict_number(obj_bytes, b"/Width").unwrap_or(raw_page.width as usize);
-                let height = parse_dict_number(obj_bytes, b"/Height").unwrap_or(raw_page.height as usize);
+            if find_subslice(obj_bytes, b"/Subtype /Image").is_some()
+                || find_subslice(obj_bytes, b"/Subtype/Image").is_some()
+            {
+                let width =
+                    parse_dict_number(obj_bytes, b"/Width").unwrap_or(raw_page.width as usize);
+                let height =
+                    parse_dict_number(obj_bytes, b"/Height").unwrap_or(raw_page.height as usize);
                 let is_dct = find_subslice(obj_bytes, b"/DCTDecode").is_some();
                 let mime_type = if is_dct { "image/jpeg" } else { "image/png" }.to_string();
 
                 if let Some(s_pos) = find_subslice(obj_bytes, b"stream") {
                     let mut s_start = s_pos + 6;
-                    if obj_bytes.get(s_start) == Some(&b'\r') && obj_bytes.get(s_start + 1) == Some(&b'\n') {
+                    if obj_bytes.get(s_start) == Some(&b'\r')
+                        && obj_bytes.get(s_start + 1) == Some(&b'\n')
+                    {
                         s_start += 2;
                     } else if obj_bytes.get(s_start) == Some(&b'\n') {
                         s_start += 1;
@@ -390,12 +408,19 @@ fn extract_images_for_page(
 
                     if let Some(s_end_rel) = find_subslice(&obj_bytes[s_start..], b"endstream") {
                         let mut img_data = &obj_bytes[s_start..s_start + s_end_rel];
-                        while img_data.ends_with(b"\n") || img_data.ends_with(b"\r") || img_data.ends_with(b" ") {
+                        while img_data.ends_with(b"\n")
+                            || img_data.ends_with(b"\r")
+                            || img_data.ends_with(b" ")
+                        {
                             img_data = &img_data[..img_data.len() - 1];
                         }
 
                         let image_object = ImageObject {
-                            id: format!("page_{}_{}", raw_page.page_number, img_id.trim_start_matches('/')),
+                            id: format!(
+                                "page_{}_{}",
+                                raw_page.page_number,
+                                img_id.trim_start_matches('/')
+                            ),
                             bbox: BoundingBox::new(0.0, 0.0, raw_page.width, raw_page.height),
                             width,
                             height,
@@ -412,8 +437,7 @@ fn extract_images_for_page(
 
 fn extract_xobject_ids_from_dict(dict: &[u8], refs: &mut Vec<(String, usize)>) {
     let clean = String::from_utf8_lossy(dict)
-        .replace('<', " ")
-        .replace('>', " ")
+        .replace(['<', '>'], " ")
         .replace('/', " /");
     let mut tokens = clean.split_whitespace();
     let mut in_xobject = false;

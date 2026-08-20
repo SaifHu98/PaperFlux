@@ -7,7 +7,7 @@ use pdf2md_ast::{ConversionDiagnostics, Document, PageDiagnostics, Section};
 use pdf2md_images::{ImageExtractor, ImageExtractorConfig};
 use pdf2md_layout::LayoutEngine;
 use pdf2md_markdown::MarkdownRenderer;
-use pdf2md_ocr::OcrDecisionEngine;
+use pdf2md_ocr::{OCRProvider, OcrDecisionEngine};
 use pdf2md_pdf::elements::RawPage;
 use pdf2md_pdf::PdfDocument;
 use pdf2md_table::TableDetector;
@@ -41,16 +41,30 @@ fn process_single_page(
 
     // 1. Check if OCR is needed
     if ocr_decision.should_perform_ocr(raw_page) {
-        if let Some(ocr_prov) = &config.ocr_provider {
+        let default_tesseract = pdf2md_ocr::SystemTesseractOCRProvider::new();
+        let provider: Option<&dyn pdf2md_ocr::OCRProvider> = match &config.ocr_provider {
+            Some(p) => Some(p.as_ref()),
+            None => {
+                if default_tesseract.is_available() {
+                    Some(&default_tesseract)
+                } else {
+                    None
+                }
+            }
+        };
+
+        if let Some(ocr_prov) = provider {
             for img in &raw_page.images {
                 if let Ok(ocr_res) = ocr_prov.recognize(&img.data, None) {
-                    let para = pdf2md_ast::Node::Paragraph {
-                        inlines: vec![pdf2md_ast::InlineNode::Text(ocr_res.text)],
-                        confidence: ocr_res.confidence,
-                        bbox: None,
-                    };
-                    section.elements.push(para);
-                    ocr_applied = true;
+                    if !ocr_res.text.trim().is_empty() {
+                        let para = pdf2md_ast::Node::Paragraph {
+                            inlines: vec![pdf2md_ast::InlineNode::Text(ocr_res.text)],
+                            confidence: ocr_res.confidence,
+                            bbox: None,
+                        };
+                        section.elements.push(para);
+                        ocr_applied = true;
+                    }
                 }
             }
         }

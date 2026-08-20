@@ -18,6 +18,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -33,7 +38,7 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
 
   test-rust:
-    name: Rust Test Suite
+    name: Rust Test Suite (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -41,6 +46,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -66,16 +76,20 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Build Python extension module
         run: |
           cargo build -p pdf2md-python
-          cp target/debug/libpdf2md_python.so python/paperflux.so || cp target/debug/pdf2md_python.dll python/paperflux.pyd || true
+          find target/debug -name "*paperflux*" -exec cp {} python/paperflux.so \; 2>/dev/null || true
+          find target/debug -name "*paperflux*" -exec cp {} python/paperflux.pyd \; 2>/dev/null || true
 
       - name: Run Python FFI test suite
         run: python3 python/test_bindings.py
 
   test-php:
-    name: PHP & Laravel Integration
+    name: PHP & Laravel Integration (${{ matrix.php-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -83,6 +97,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build CLI binary for subprocess integration
+        run: cargo build -p pdf2md-cli
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2

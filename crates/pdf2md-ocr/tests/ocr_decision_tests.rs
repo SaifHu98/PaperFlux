@@ -122,3 +122,17 @@ fn test_pluggable_ocr_provider() {
     assert_eq!(result.lines[0].words.len(), 1);
     assert!(result.confidence >= 0.90);
 }
+
+#[test]
+fn test_system_tesseract_ocr_provider_configuration() {
+    use pdf2md_ocr::provider::SystemTesseractOCRProvider;
+    let provider = SystemTesseractOCRProvider::with_languages("ara+eng");
+    assert_eq!(provider.name(), "SystemTesseractOCRProvider");
+    assert_eq!(provider.languages, "ara+eng");
+
+    // If tesseract binary is not installed on system, recognize() returns graceful error
+    if !provider.is_available() {
+        let err = provider.recognize(b"fake_image", None).unwrap_err();
+        assert!(err.contains("Tesseract binary not found"));
+    }
+}

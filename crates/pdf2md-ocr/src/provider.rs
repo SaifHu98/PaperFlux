@@ -112,3 +112,160 @@ impl OCRProvider for MockOCRProvider {
         })
     }
 }
+
+use std::fs;
+use std::path::PathBuf;
+use std::process::Command;
+
+/// Production OCR provider utilizing the system Tesseract OCR binary
+#[derive(Debug, Clone)]
+pub struct SystemTesseractOCRProvider {
+    pub binary_path: Option<PathBuf>,
+    pub languages: String,
+}
+
+impl Default for SystemTesseractOCRProvider {
+    fn default() -> Self {
+        Self {
+            binary_path: None,
+            languages: "ara+eng".to_string(),
+        }
+    }
+}
+
+impl SystemTesseractOCRProvider {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_languages(languages: &str) -> Self {
+        Self {
+            binary_path: None,
+            languages: languages.to_string(),
+        }
+    }
+
+    pub fn with_binary(binary: PathBuf, languages: &str) -> Self {
+        Self {
+            binary_path: Some(binary),
+            languages: languages.to_string(),
+        }
+    }
+
+    pub fn resolve_binary(&self) -> Option<PathBuf> {
+        if let Some(b) = &self.binary_path {
+            if b.exists() {
+                return Some(b.clone());
+            }
+        }
+
+        if let Ok(env_path) = std::env::var("TESSERACT_PATH") {
+            let p = PathBuf::from(env_path);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+
+        let candidates = [
+            "tesseract",
+            "tesseract.exe",
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+            "/usr/bin/tesseract",
+            "/usr/local/bin/tesseract",
+            "/opt/homebrew/bin/tesseract",
+        ];
+
+        for c in candidates {
+            let p = PathBuf::from(c);
+            if p.exists() {
+                return Some(p);
+            }
+            if let Ok(out) = Command::new(c).arg("--version").output() {
+                if out.status.success() {
+                    return Some(PathBuf::from(c));
+                }
+            }
+        }
+
+        None
+    }
+}
+
+impl OCRProvider for SystemTesseractOCRProvider {
+    fn name(&self) -> &str {
+        "SystemTesseractOCRProvider"
+    }
+
+    fn is_available(&self) -> bool {
+        self.resolve_binary().is_some()
+    }
+
+    fn recognize(&self, image_bytes: &[u8], lang_hint: Option<&str>) -> Result<OcrResult, String> {
+        let binary = self.resolve_binary().ok_or_else(|| {
+            "Tesseract binary not found on host system (set TESSERACT_PATH)".to_string()
+        })?;
+
+        let lang = lang_hint.unwrap_or(&self.languages);
+
+        // Write image bytes to a temp file
+        let temp_dir = std::env::temp_dir();
+        let file_id = format!(
+            "tess_ocr_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        );
+        let temp_img = temp_dir.join(format!("{}.jpg", file_id));
+
+        fs::write(&temp_img, image_bytes)
+            .map_err(|e| format!("Failed to write temporary OCR image: {}", e))?;
+
+        let output = Command::new(binary)
+            .arg(&temp_img)
+            .arg("stdout")
+            .arg("-l")
+            .arg(lang)
+            .output();
+
+        let _ = fs::remove_file(&temp_img);
+
+        match output {
+            Ok(out) => {
+                if !out.status.success() {
+                    let err = String::from_utf8_lossy(&out.stderr);
+                    return Err(format!("Tesseract OCR failed: {}", err));
+                }
+                let recognized_text = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                let lines: Vec<OcrLine> = recognized_text
+                    .lines()
+                    .filter(|l| !l.trim().is_empty())
+                    .map(|line| OcrLine {
+                        text: line.to_string(),
+                        bbox: BoundingBox::new(0.0, 0.0, 595.0, 20.0),
+                        confidence: 0.90,
+                        words: line
+                            .split_whitespace()
+                            .map(|w| OcrWord {
+                                text: w.to_string(),
+                                bbox: BoundingBox::new(0.0, 0.0, 50.0, 20.0),
+                                confidence: 0.90,
+                                detected_script: Some("Arabic".into()),
+                            })
+                            .collect(),
+                    })
+                    .collect();
+
+                Ok(OcrResult {
+                    text: recognized_text,
+                    confidence: 0.90,
+                    orientation: OcrOrientation::Rot0,
+                    lines,
+                    detected_language: Some(lang.to_string()),
+                })
+            }
+            Err(e) => Err(format!("Failed to execute Tesseract: {}", e)),
+        }
+    }
+}

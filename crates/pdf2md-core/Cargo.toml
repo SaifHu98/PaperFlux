@@ -1,0 +1,23 @@
+[package]
+name = "pdf2md-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Core orchestrator, configuration, and conversion pipeline for pdf2md"
+
+[dependencies]
+pdf2md-ast = { path = "../pdf2md-ast" }
+pdf2md-text = { path = "../pdf2md-text" }
+pdf2md-pdf = { path = "../pdf2md-pdf" }
+pdf2md-layout = { path = "../pdf2md-layout" }
+pdf2md-table = { path = "../pdf2md-table" }
+pdf2md-ocr = { path = "../pdf2md-ocr" }
+pdf2md-images = { path = "../pdf2md-images" }
+pdf2md-markdown = { path = "../pdf2md-markdown" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+tracing = { workspace = true }
+rayon = { workspace = true }

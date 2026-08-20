@@ -1,0 +1,18 @@
+[package]
+name = "pdf2md-http"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Lightweight HTTP worker microservice for server offloading"
+
+[[bin]]
+name = "pdf2md-http"
+path = "src/main.rs"
+
+[dependencies]
+pdf2md-core = { path = "../pdf2md-core" }
+pdf2md-ast = { path = "../pdf2md-ast" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }

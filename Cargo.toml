@@ -1,0 +1,39 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/pdf2md-ast",
+    "crates/pdf2md-text",
+    "crates/pdf2md-pdf",
+    "crates/pdf2md-layout",
+    "crates/pdf2md-table",
+    "crates/pdf2md-ocr",
+    "crates/pdf2md-images",
+    "crates/pdf2md-markdown",
+    "crates/pdf2md-core",
+    "crates/pdf2md-cli",
+    "crates/pdf2md-wasm",
+    "crates/pdf2md-http",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ecouni/pdf2md"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+log = "0.4"
+tracing = "0.1"
+unicode-normalization = "0.1"
+unicode-bidi = "0.3"
+unicode-segmentation = "1.10"
+flate2 = "1.0"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+sha2 = "0.10"
+clap = { version = "4.5", features = ["derive", "env"] }
+rayon = "1.10"
+js-sys = "0.3"

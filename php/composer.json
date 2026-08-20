@@ -1,0 +1,30 @@
+{
+  "name": "ecouni/pdf2md",
+  "description": "High-performance, secure, accurate PDF to Markdown conversion engine for PHP 8.2+ and Laravel",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "EcoUni Systems",
+      "email": "dev@ecouni.org"
+    }
+  ],
+  "require": {
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Pdf2Md\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Pdf2Md\\Laravel\\Pdf2MdServiceProvider"
+      ],
+      "aliases": {
+        "PDFMarkdown": "Pdf2Md\\Laravel\\Facades\\PDFMarkdown"
+      }
+    }
+  }
+}

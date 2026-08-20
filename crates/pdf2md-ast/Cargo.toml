@@ -1,0 +1,11 @@
+[package]
+name = "pdf2md-ast"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Document AST, geometry, and diagnostics definitions for pdf2md"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }

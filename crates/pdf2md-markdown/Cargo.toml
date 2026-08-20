@@ -1,0 +1,11 @@
+[package]
+name = "pdf2md-markdown"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "High-fidelity Markdown renderer for Document AST supporting CommonMark, GFM, and Extended dialects"
+
+[dependencies]
+pdf2md-ast = { path = "../pdf2md-ast" }
+serde = { workspace = true }

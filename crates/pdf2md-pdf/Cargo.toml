@@ -1,0 +1,18 @@
+[package]
+name = "pdf2md-pdf"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Low-level PDF stream parsing, font CMap decoding, and geometric glyph extraction"
+
+[dependencies]
+pdf2md-ast = { path = "../pdf2md-ast" }
+pdf2md-text = { path = "../pdf2md-text" }
+flate2 = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+log = { workspace = true }
+
+[dev-dependencies]
+pdf2md-images = { path = "../pdf2md-images" }

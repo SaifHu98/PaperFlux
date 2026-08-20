@@ -1,0 +1,17 @@
+[package]
+name = "pdf2md-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "High-performance CLI tool for converting PDF documents into clean Markdown"
+
+[[bin]]
+name = "pdf2md"
+path = "src/main.rs"
+
+[dependencies]
+pdf2md-core = { path = "../pdf2md-core" }
+pdf2md-ast = { path = "../pdf2md-ast" }
+clap = { workspace = true }
+serde_json = { workspace = true }

@@ -1,0 +1,13 @@
+[package]
+name = "pdf2md-layout"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Spatial clustering, multi-column XY-Cut reading order, header/footer filtering, and paragraph reconstruction"
+
+[dependencies]
+pdf2md-ast = { path = "../pdf2md-ast" }
+pdf2md-text = { path = "../pdf2md-text" }
+pdf2md-pdf = { path = "../pdf2md-pdf" }
+serde = { workspace = true }

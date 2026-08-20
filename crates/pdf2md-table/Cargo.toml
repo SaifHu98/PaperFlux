@@ -1,0 +1,13 @@
+[package]
+name = "pdf2md-table"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "High-accuracy table detection engine supporting lattice vector grids and borderless whitespace alignment"
+
+[dependencies]
+pdf2md-ast = { path = "../pdf2md-ast" }
+pdf2md-pdf = { path = "../pdf2md-pdf" }
+pdf2md-text = { path = "../pdf2md-text" }
+serde = { workspace = true }

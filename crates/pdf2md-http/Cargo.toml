@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 authors = ["EcoUni Systems <dev@ecouni.org>"]
 license = "MIT OR Apache-2.0"
-description = "Lightweight HTTP worker microservice for server offloading"
+description = "Lightweight HTTP worker microservice for server offloading with OpenAPI 3.0 and async task handling"
+
+[lib]
+name = "pdf2md_http"
+path = "src/lib.rs"
 
 [[bin]]
 name = "pdf2md-http"
@@ -16,3 +20,5 @@ pdf2md-ast = { path = "../pdf2md-ast" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 clap = { workspace = true }
+utoipa = "5.3"
+uuid = { version = "1.10", features = ["v4", "fast-rng"] }

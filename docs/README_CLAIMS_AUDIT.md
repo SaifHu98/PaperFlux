@@ -61,10 +61,12 @@ A comprehensive forensic audit was conducted across the source code, test suites
 | **RTL Reading Order** | **IMPLEMENTED** | `pdf2md-layout::arabic_reading_order` | `arabic_reading_order_golden_tests` | Multi-column traversal from physical right to left ($X_{\max} \to X_{\min}$). |
 | **RTL Table Extraction** | **IMPLEMENTED** | `pdf2md-table::arabic_table` | `arabic_table_extraction_tests` | Maps $X_{\max}$ to Col 1; HTML `<table dir="rtl">` for spans. |
 | **Pluggable OCR Orchestration** | **IMPLEMENTED** | `pdf2md-ocr::arabic_ocr` | `arabic_ocr_decision_fusion_tests` | Zero-waste policy ($Q \ge 0.88$) with `OCRProvider` abstraction. |
+| **Calligraphy / Nastaliq DPI Boost** | **IMPLEMENTED** | `pdf2md-ocr::calligraphy` | `calligraphy_ocr_tests` | Detects Nastaliq/Diwani and boosts resolution to 300 DPI. |
+| **Cross-Page Table Stitching** | **IMPLEMENTED** | `pdf2md-table::stitching` | `cross_page_table_stitching_tests` | Multi-page header matching and section continuation stitching. |
+| **Python FFI Bindings** | **IMPLEMENTED** | `pdf2md-python` | `test_bindings.py` | Native PyO3 bindings for high-throughput Python execution. |
+| **OpenAPI 3.0 & Async HTTP Tasks**| **IMPLEMENTED** | `pdf2md-http` | `async_and_openapi_integration_tests` | `utoipa` OpenAPI schemas and background task queue. |
 | **WASM Browser Support** | **IMPLEMENTED** | `pdf2md-wasm` | `test_sdk.js` | WebWorker execution, AbortController, size limits. |
 | **PHP & Laravel UTF-8** | **IMPLEMENTED** | `php/src/ProcessRunner.php` | `ArabicUtf8IntegrityTest.php` | Multibyte string safety and unescaped Unicode JSON. |
-| **Nastaliq Script Clustering** | **EXPERIMENTAL** | `pdf2md-layout::arabic_layout` | — | Diagonal baseline clustering for calligraphic scripts. |
-| **Cross-Page Table Stitching** | **EXPERIMENTAL** | `pdf2md-table::table_detector` | — | Multi-page header continuation matching. |
 | **Automated Ground-Truth Diff** | **PLANNED** | — | — | Ground-truth CER/WER comparison on disk. |
 
 ---
@@ -74,7 +76,7 @@ A comprehensive forensic audit was conducted across the source code, test suites
 ### Microbenchmarks vs. Real-World Document Workloads
 * **Empirical Execution**: `cargo test -p pdf2md-core --test arabic_production_corpus -- --nocapture` executed in **0.00s** (1 test).
 * **Test Workload**: The benchmark creates in-memory 1-page PDF byte strings (~700 bytes) containing single Type 1 `/BT...ET` font streams.
-* **Measured Latency**: 0.05 ms – 0.53 ms per in-memory synthetic page.
+* **Measured Latency**: 0.05 ms – 0.47 ms per in-memory synthetic page.
 * **Classification**: **VALID MICROBENCHMARK (In-Memory Synthetic Text Streams)**.
 * **Audit Determination**: This benchmark confirms that the memory parser and reconstruction pipeline operate with high computational efficiency on raw text streams. It does **not** prove real-world throughput on 100-page scanned PDFs with high-resolution images or active OCR engines. Unsupported marketing claims of "5,000+ real-world pages/sec" have been removed from the README.
 
@@ -84,12 +86,14 @@ A comprehensive forensic audit was conducted across the source code, test suites
 
 | Test Suite | Execution Command | Total | Passed | Failed | Duration |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Rust Workspace** | `cargo test --workspace` | **116** | **116** | 0 | **1.22s** |
+| **Rust Workspace** | `cargo test --workspace` | **137** | **137** | 0 | **1.45s** |
+| **Python FFI Bindings**| `python python/test_bindings.py` | **4** | **4** | 0 | **0.15s** |
 | **PHP Integration** | `php php/tests/run_tests.php` | **10** | **10** | 0 | **0.05s** |
 | **PHP Arabic UTF-8** | `php php/tests/ArabicUtf8IntegrityTest.php` | **8** | **8** | 0 | **0.03s** |
 | **Laravel Package** | `php php/tests/LaravelIntegrationTest.php` | **11** | **11** | 0 | **0.06s** |
 | **PHP E2E Binary** | `php php/tests/e2e_php_test.php` | **1** | **1** | 0 | **0.05s** |
 | **TypeScript SDK** | `node crates/pdf2md-wasm/ts/test_sdk.js` | **4** | **4** | 0 | **0.12s** |
+| **Total** | — | **175** | **175** | **0** | **100% Passing** |
 
 ---
 

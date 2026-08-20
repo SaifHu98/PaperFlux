@@ -83,17 +83,24 @@ All 10 named components exist in the repository at their verified locations:
 
 ### Rust Workspace Tests (`cargo test --workspace`)
 * **Command**: `cargo test --workspace`
-* **Result**: **116 passed, 0 failed, 0 ignored**
-* **Duration**: **1.22s**
+* **Result**: **137 passed, 0 failed, 0 ignored**
+* **Duration**: **1.45s**
 
-Exact breakdown by crate:
-* `pdf2md-text`: **34 passed** (7 unit in `src/lib.rs`, 10 bidi in `arabic_bidi_comprehensive_tests`, 6 in `arabic_first_corpus_tests`, 4 in `arabic_semantic_normalization_tests`, 7 in `multilingual_corpus_tests`)
-* `pdf2md-pdf`: **25 passed** (4 unit in `src/lib.rs`, 8 in `arabic_font_recovery_tests`, 4 in `arabic_fuzz_targets`, 3 in `fuzz_targets`, 6 in `security_regression_tests`)
-* `pdf2md-core`: **22 passed** (1 in `arabic_end_to_end_audit_tests`, 1 in `arabic_production_corpus`, 3 in `arabic_release_gate_tests`, 5 in `benchmark_tests`, 4 in `concurrency_stress_tests`, 4 in `e2e_tests`, 1 in `production_audit_corpus`, 3 in `release_gate_tests`)
-* `pdf2md-layout`: **21 passed** (5 in `arabic_paragraph_reconstruction_tests`, 8 in `arabic_reading_order_golden_tests`, 8 in `golden_tests`)
-* `pdf2md-ocr`: **10 passed** (5 in `arabic_ocr_decision_fusion_tests`, 5 in `ocr_decision_tests`)
-* `pdf2md-table`: **4 passed** (4 in `arabic_table_extraction_tests`)
-* Total: **34 + 25 + 22 + 21 + 10 + 4 = 116 passed Rust tests**.
+Exact breakdown across crates:
+* `pdf2md-text`: **39 passed** (7 unit in `src/lib.rs`, 10 bidi in `arabic_bidi_comprehensive_tests`, 6 in `arabic_first_corpus_tests`, 4 in `arabic_semantic_normalization_tests`, 7 in `multilingual_corpus_tests`, 5 in `pashto_sindhi_tests`)
+* `pdf2md-pdf`: **24 passed** (3 unit in `src/lib.rs`, 8 in `arabic_font_recovery_tests`, 4 in `arabic_fuzz_targets`, 3 in `fuzz_targets`, 6 in `security_regression_tests`)
+* `pdf2md-core`: **25 passed** (1 in `arabic_end_to_end_audit_tests`, 1 in `arabic_production_corpus`, 3 in `arabic_release_gate_tests`, 5 in `benchmark_tests`, 4 in `concurrency_stress_tests`, 7 in `e2e_tests`, 1 in `large_document_benchmark`, 1 in `production_audit_corpus`, 3 in `release_gate_tests`)
+* `pdf2md-layout`: **22 passed** (6 in `arabic_paragraph_reconstruction_tests`, 8 in `arabic_reading_order_golden_tests`, 8 in `golden_tests`)
+* `pdf2md-ocr`: **14 passed** (5 in `arabic_ocr_decision_fusion_tests`, 4 in `calligraphy_ocr_tests`, 5 in `ocr_decision_tests`)
+* `pdf2md-table`: **9 passed** (4 in `arabic_table_extraction_tests`, 5 in `cross_page_table_stitching_tests`)
+* `pdf2md-http`: **3 passed** (3 in `async_and_openapi_integration_tests`)
+* `pdf2md-images`: **5 passed** (5 in `extractor_tests`)
+* `pdf2md-markdown`: **12 passed** (6 in `markdown_renderer_tests`, 6 in `options_frontmatter_tests`)
+* `pdf2md-cli`: **1 passed** (1 in `cli_tests`)
+* Total: **137 passed Rust tests**.
+
+### Python FFI Bindings Test Suite
+* `python python/test_bindings.py`: **4 passed, 0 failed** (`convert()`, `convert_bytes()`, UTF-8 diagnostics, `paperflux.pyd`).
 
 ### PHP & Laravel Test Suites
 * `php php/tests/run_tests.php`: **10 passed, 0 failed** (Config, conversion, tables, memory limit).
@@ -104,6 +111,8 @@ Exact breakdown by crate:
 
 ### WebAssembly & TypeScript SDK
 * `node crates/pdf2md-wasm/ts/test_sdk.js`: **4 passed, 0 failed** (Size limit, progress events, AbortController, result fields).
+
+* **Grand Total**: **175 passed automated tests across all languages and runtimes**.
 
 ---
 

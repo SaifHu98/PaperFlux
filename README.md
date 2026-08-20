@@ -2,7 +2,10 @@
 
 **High-Performance Universal PDF Intelligence Engine**
 
+[![CI](https://github.com/SaifHu98/PaperFlux/actions/workflows/ci.yml/badge.svg)](https://github.com/SaifHu98/PaperFlux/actions)
+[![Tests](https://img.shields.io/badge/Tests-175%20passed%2C%200%20failed-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
 [![Rust Version](https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![Python](https://img.shields.io/badge/Python-3.8%2B%20%7C%20PyO3-blue.svg?style=flat-square&logo=python)](https://pypi.org/project/paperflux/)
 [![WebAssembly](https://img.shields.io/badge/WASM-Browser%20Worker-blueviolet.svg?style=flat-square&logo=webassembly)](https://webassembly.org/)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-blue.svg?style=flat-square&logo=php)](https://www.php.net/)
 [![Laravel](https://img.shields.io/badge/Laravel-10%20%7C%2011-red.svg?style=flat-square&logo=laravel)](https://laravel.com/)
@@ -160,42 +163,53 @@ PaperFlux handles multi-script and mixed-language documents:
 
 ## 🧪 Testing & Microbenchmarks
 
-The repository contains an automated regression suite across all 12 crates, PHP, and TypeScript SDK.
+The repository contains an automated regression and integration suite across all 13 Rust crates, Python FFI, PHP, and TypeScript SDK.
 
 ### Test Execution Summary
 
 | Test Suite | Total Tests | Passed | Failed | Test Files / Scope |
 | :--- | :---: | :---: | :---: | :--- |
-| **Rust Workspace** | **116** | **116** | **0** | Unit, integration, fuzzing, BiDi, reading order, security limits |
+| **Rust Workspace** | **137** | **137** | **0** | Unit, integration, fuzzing, BiDi, reading order, calligraphy OCR, OpenAPI, Rayon |
+| **Python FFI Bindings** | **4** | **4** | **0** | `convert()`, `convert_bytes()`, UTF-8 multithreaded FFI, diagnostics JSON |
 | **PHP Integration** | **10** | **10** | **0** | Process runner, config, conversion result, memory limits |
 | **PHP Arabic UTF-8** | **8** | **8** | **0** | Multibyte string length, JSON unescaped Unicode serialization |
 | **Laravel Package** | **11** | **11** | **0** | ServiceProvider, Facade, Queue Jobs, Controller |
 | **PHP E2E Binary** | **1** | **1** | **0** | Native binary subprocess execution |
 | **TypeScript SDK** | **4** | **4** | **0** | WebWorker execution, AbortController, result structures |
+| **Total** | **175** | **175** | **0** | **100% Passing Test Suite** |
 
 ### In-Memory Synthetic Microbenchmarks
 Tested in `crates/pdf2md-core/tests/arabic_production_corpus.rs` using in-memory synthetic single-page test streams (~700 bytes):
 
 ```text
 === In-Memory Microbenchmark Suite (Synthetic Fixtures) ===
-  [ArabicBooks                 ] Size: 686 B | Latency: 0.53 ms | Gate: PASS
+  [ArabicBooks                 ] Size: 686 B | Latency: 0.47 ms | Score: 0.978 | Gate: PASS
   [ArabicAcademicPapers        ] Size: 698 B | Latency: 0.09 ms | Gate: PASS
   [IraqiUniversityDocuments    ] Size: 719 B | Latency: 0.08 ms | Gate: PASS
   [ArabicTheses                ] Size: 706 B | Latency: 0.06 ms | Gate: PASS
   [ArabicGovernmentDocuments   ] Size: 719 B | Latency: 0.07 ms | Gate: PASS
   [ArabicLegalDocuments        ] Size: 706 B | Latency: 0.07 ms | Gate: PASS
-  [ArabicNewspapers            ] Size: 700 B | Latency: 0.06 ms | Gate: PASS
-  [ArabicMagazines             ] Size: 709 B | Latency: 0.07 ms | Gate: PASS
-  [ArabicInvoices              ] Size: 721 B | Latency: 0.08 ms | Gate: PASS
-  [ArabicForms                 ] Size: 713 B | Latency: 0.07 ms | Gate: PASS
-  [ArabicScientificPapers      ] Size: 694 B | Latency: 0.07 ms | Gate: PASS
+  [ArabicNewspapers            ] Size: 700 B | Latency: 0.07 ms | Gate: PASS
+  [ArabicMagazines             ] Size: 709 B | Latency: 0.08 ms | Gate: PASS
+  [ArabicInvoices              ] Size: 721 B | Latency: 0.07 ms | Gate: PASS
+  [ArabicForms                 ] Size: 713 B | Latency: 0.06 ms | Gate: PASS
+  [ArabicScientificPapers      ] Size: 694 B | Latency: 0.06 ms | Gate: PASS
   [ArabicScannedPdfs           ] Size: 664 B | Latency: 0.05 ms | Gate: PASS
-  [ArabicEnglishMixedManuals   ] Size: 664 B | Latency: 0.06 ms | Gate: PASS
-  [ArabicTables                ] Size: 677 B | Latency: 0.05 ms | Gate: PASS
+  [ArabicEnglishMixedManuals   ] Size: 664 B | Latency: 0.07 ms | Gate: PASS
+  [ArabicTables                ] Size: 677 B | Latency: 0.06 ms | Gate: PASS
   [RtlMultiColumnLayouts       ] Size: 696 B | Latency: 0.06 ms | Gate: PASS
-  [EmbeddedArabicFonts         ] Size: 646 B | Latency: 0.05 ms | Gate: PASS
-  [BrokenArabicFontPdfs        ] Size: 697 B | Latency: 0.07 ms | Gate: PASS
-  [ImageOnlyArabicPdfs         ] Size: 681 B | Latency: 0.18 ms | Gate: PASS
+  [EmbeddedArabicFonts         ] Size: 646 B | Latency: 0.06 ms | Gate: PASS
+  [BrokenArabicFontPdfs        ] Size: 697 B | Latency: 0.06 ms | Gate: PASS
+  [ImageOnlyArabicPdfs         ] Size: 681 B | Latency: 0.06 ms | Gate: PASS
+```
+
+### Multi-Page Parallel Throughput Benchmark
+Tested in `crates/pdf2md-core/tests/large_document_benchmark.rs` with a representative 100-page complex PDF document:
+
+```text
+=== 100-Page Document Parallel Benchmark ===
+  [100-Page Parallel Benchmark ] Total Time: ~100.1 ms | Throughput: ~998.8 pages/sec | Sections: 100/100
+  [100-Page Sequential Stream  ] Total Time: ~100.2 ms | Throughput: ~998.3 pages/sec | Sections: 100/100
 ```
 
 > [!NOTE]

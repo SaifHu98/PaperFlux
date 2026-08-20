@@ -40,6 +40,8 @@ pub struct ConfidenceScores {
     pub ocr_confidence: f32,
     pub language_confidence: f32,
     pub layout_confidence: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stitch_confidence: Option<f32>,
 }
 
 impl Default for ConfidenceScores {
@@ -52,6 +54,7 @@ impl Default for ConfidenceScores {
             ocr_confidence: 1.0,
             language_confidence: 1.0,
             layout_confidence: 1.0,
+            stitch_confidence: None,
         }
     }
 }

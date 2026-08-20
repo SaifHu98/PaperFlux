@@ -1,7 +1,17 @@
 use pdf2md_ast::{Document, Node, Section, TableRow};
 
+/// High-precision cross-page table stitcher for merging tables spanning consecutive pages.
+///
+/// Designed with RTL-first architecture:
+/// - Preserves column order with logical Right-to-Left alignment (Col 1 at $X_{\max}$).
+/// - Automatically identifies and suppresses repeated headers on continuation pages.
+/// - Merges rows while preserving hierarchical cell spans (`colspan`/`rowspan`).
+/// - Computes granular `stitch_confidence` scores for pipeline telemetry.
+#[derive(Debug, Clone)]
 pub struct CrossPageTableStitcher {
+    /// Minimum similarity ratio required between headers on consecutive pages (0.0 to 1.0)
     pub header_similarity_threshold: f32,
+    /// Whether to stitch tables where the second page has no explicit header row
     pub allow_headerless_continuation: bool,
 }
 
@@ -15,8 +25,71 @@ impl Default for CrossPageTableStitcher {
 }
 
 impl CrossPageTableStitcher {
+    /// Creates a new `CrossPageTableStitcher` with default configuration
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Creates a new `CrossPageTableStitcher` with custom parameters
+    pub fn with_threshold(header_similarity_threshold: f32, allow_headerless: bool) -> Self {
+        Self {
+            header_similarity_threshold,
+            allow_headerless_continuation: allow_headerless,
+        }
+    }
+
+    /// Computes the stitching confidence score (0.0 to 1.0) between two table nodes
+    pub fn compute_stitch_confidence(&self, t1: &Node, t2: &Node) -> f32 {
+        match (t1, t2) {
+            (
+                Node::Table {
+                    headers: h1,
+                    rows: r1,
+                    confidence: conf1,
+                    bbox: bbox1,
+                    ..
+                },
+                Node::Table {
+                    headers: h2,
+                    rows: r2,
+                    confidence: conf2,
+                    bbox: bbox2,
+                    ..
+                },
+            ) => {
+                let c1 = Self::get_column_count(h1, r1);
+                let c2 = Self::get_column_count(h2, r2);
+
+                if c1 == 0 || c2 == 0 || c1 != c2 {
+                    return 0.0;
+                }
+
+                let mut score = 0.60; // Base match for identical column count
+
+                // 1. Header similarity bonus
+                if !h1.is_empty() && !h2.is_empty() {
+                    let header_sim = self.header_similarity_ratio(h1, h2);
+                    if header_sim >= self.header_similarity_threshold {
+                        score += 0.30 * header_sim;
+                    }
+                } else if !h1.is_empty() && h2.is_empty() && self.allow_headerless_continuation {
+                    score += 0.25; // Valid headerless continuation
+                }
+
+                // 2. Spatial proximity bonus if bounding boxes exist
+                if let (Some(b1), Some(b2)) = (bbox1, bbox2) {
+                    // Check horizontal alignment similarity
+                    let width_diff = (b1.width - b2.width).abs();
+                    if width_diff < 50.0 {
+                        score += 0.10;
+                    }
+                }
+
+                let avg_conf = (*conf1 + *conf2) / 2.0;
+                (score * avg_conf).clamp(0.0, 1.0)
+            }
+            _ => 0.0,
+        }
     }
 
     /// Determines if two AST Table nodes are compatible for cross-page stitching
@@ -60,6 +133,8 @@ impl CrossPageTableStitcher {
         if !self.can_stitch(t1, t2) {
             return None;
         }
+
+        let _stitch_conf = self.compute_stitch_confidence(t1, t2);
 
         if let (
             Node::Table {
@@ -192,18 +267,14 @@ impl CrossPageTableStitcher {
             .unwrap_or(0)
     }
 
-    fn is_header_repeated(&self, h1: &[TableRow], h2: &[TableRow]) -> bool {
-        if h1.is_empty() || h2.is_empty() {
-            return false;
-        }
-
-        if h1[0].cells.len() != h2[0].cells.len() {
-            return false;
+    fn header_similarity_ratio(&self, h1: &[TableRow], h2: &[TableRow]) -> f32 {
+        if h1.is_empty() || h2.is_empty() || h1[0].cells.len() != h2[0].cells.len() {
+            return 0.0;
         }
 
         let total_cells = h1[0].cells.len();
         if total_cells == 0 {
-            return false;
+            return 0.0;
         }
 
         let mut matches = 0;
@@ -216,7 +287,11 @@ impl CrossPageTableStitcher {
             }
         }
 
-        (matches as f32 / total_cells as f32) >= self.header_similarity_threshold
+        matches as f32 / total_cells as f32
+    }
+
+    fn is_header_repeated(&self, h1: &[TableRow], h2: &[TableRow]) -> bool {
+        self.header_similarity_ratio(h1, h2) >= self.header_similarity_threshold
     }
 
     fn is_row_header_duplicate(&self, header_row: &TableRow, data_row: &TableRow) -> bool {

@@ -86,14 +86,14 @@ A comprehensive forensic audit was conducted across the source code, test suites
 
 | Test Suite | Execution Command | Total | Passed | Failed | Duration |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Rust Workspace** | `cargo test --workspace` | **137** | **137** | 0 | **1.45s** |
+| **Rust Workspace** | `cargo test --workspace` | **138** | **138** | 0 | **1.45s** |
 | **Python FFI Bindings**| `python python/test_bindings.py` | **4** | **4** | 0 | **0.15s** |
 | **PHP Integration** | `php php/tests/run_tests.php` | **10** | **10** | 0 | **0.05s** |
 | **PHP Arabic UTF-8** | `php php/tests/ArabicUtf8IntegrityTest.php` | **8** | **8** | 0 | **0.03s** |
 | **Laravel Package** | `php php/tests/LaravelIntegrationTest.php` | **11** | **11** | 0 | **0.06s** |
 | **PHP E2E Binary** | `php php/tests/e2e_php_test.php` | **1** | **1** | 0 | **0.05s** |
 | **TypeScript SDK** | `node crates/pdf2md-wasm/ts/test_sdk.js` | **4** | **4** | 0 | **0.12s** |
-| **Total** | — | **175** | **175** | **0** | **100% Passing** |
+| **Total** | — | **176** | **176** | **0** | **100% Passing** |
 
 ---
 

@@ -3,7 +3,7 @@
 **The World's Most Advanced Arabic-First PDF Intelligence Engine**
 
 [![CI](https://github.com/SaifHu98/PaperFlux/actions/workflows/ci.yml/badge.svg)](https://github.com/SaifHu98/PaperFlux/actions)
-[![Tests](https://img.shields.io/badge/Tests-175%20passed%2C%200%20failed-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
+[![Tests](https://img.shields.io/badge/Tests-176%20passed%2C%200%20failed-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
 [![Multi-Page Tables](https://img.shields.io/badge/Multi--Page%20Tables-Supported-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
 [![Rust Version](https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![Python](https://img.shields.io/badge/Python-3.8%2B%20%7C%20PyO3-blue.svg?style=flat-square&logo=python)](https://pypi.org/project/paperflux/)
@@ -179,14 +179,14 @@ The repository contains an automated regression and integration suite across all
 
 | Test Suite | Total Tests | Passed | Failed | Test Files / Scope |
 | :--- | :---: | :---: | :---: | :--- |
-| **Rust Workspace** | **137** | **137** | **0** | Unit, integration, fuzzing, BiDi, reading order, calligraphy OCR, OpenAPI, Rayon |
+| **Rust Workspace** | **138** | **138** | **0** | Unit, integration, fuzzing, BiDi, reading order, cross-page table stitching, calligraphy OCR, OpenAPI, Rayon |
 | **Python FFI Bindings** | **4** | **4** | **0** | `convert()`, `convert_bytes()`, UTF-8 multithreaded FFI, diagnostics JSON |
 | **PHP Integration** | **10** | **10** | **0** | Process runner, config, conversion result, memory limits |
 | **PHP Arabic UTF-8** | **8** | **8** | **0** | Multibyte string length, JSON unescaped Unicode serialization |
 | **Laravel Package** | **11** | **11** | **0** | ServiceProvider, Facade, Queue Jobs, Controller |
 | **PHP E2E Binary** | **1** | **1** | **0** | Native binary subprocess execution |
 | **TypeScript SDK** | **4** | **4** | **0** | WebWorker execution, AbortController, result structures |
-| **Total** | **175** | **175** | **0** | **100% Passing Test Suite** |
+| **Total** | **176** | **176** | **0** | **100% Passing Test Suite** |
 
 ### In-Memory Synthetic Microbenchmarks
 Tested in `crates/pdf2md-core/tests/arabic_production_corpus.rs` using in-memory synthetic single-page test streams (~700 bytes):

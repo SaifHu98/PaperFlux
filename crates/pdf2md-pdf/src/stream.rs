@@ -14,13 +14,23 @@ impl StreamDecoder {
             return Ok(Vec::new());
         }
 
+        let mut trimmed = compressed;
+        while trimmed.ends_with(b"\n") || trimmed.ends_with(b"\r") || trimmed.ends_with(b" ") {
+            trimmed = &trimmed[..trimmed.len() - 1];
+        }
+
+        if trimmed.is_empty() {
+            return Ok(Vec::new());
+        }
+
         let max_allowed_bytes = limits.max_decompressed_stream_bytes;
         let max_ratio = limits.max_decompression_ratio;
 
-        let mut decoder = ZlibDecoder::new(compressed);
+        let mut decoder = ZlibDecoder::new(trimmed);
         let mut output = Vec::new();
         let mut chunk = [0u8; 8192];
         let mut total_read = 0;
+        let mut zlib_failed = false;
 
         loop {
             match decoder.read(&mut chunk) {
@@ -35,18 +45,45 @@ impl StreamDecoder {
                         ));
                     }
 
-                    let current_ratio = (total_read as f32) / (compressed.len().max(1) as f32);
+                    let current_ratio = (total_read as f32) / (trimmed.len().max(1) as f32);
                     if current_ratio > max_ratio && total_read > 1024 * 1024 {
                         return Err(SecurityError::DecompressionBomb(current_ratio, max_ratio));
                     }
 
                     output.extend_from_slice(&chunk[..n]);
                 }
-                Err(e) => {
-                    return Err(SecurityError::LimitExceeded(format!(
-                        "Flate decompression error: {}",
-                        e
-                    )));
+                Err(_) => {
+                    zlib_failed = true;
+                    break;
+                }
+            }
+        }
+
+        if zlib_failed {
+            // Attempt raw DeflateDecoder fallback
+            use flate2::read::DeflateDecoder;
+            let mut deflate_decoder = DeflateDecoder::new(trimmed);
+            output.clear();
+            total_read = 0;
+            loop {
+                match deflate_decoder.read(&mut chunk) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        total_read += n;
+                        if total_read > max_allowed_bytes {
+                            return Err(SecurityError::StreamSizeExceeded(
+                                total_read,
+                                max_allowed_bytes,
+                            ));
+                        }
+                        output.extend_from_slice(&chunk[..n]);
+                    }
+                    Err(e) => {
+                        return Err(SecurityError::LimitExceeded(format!(
+                            "Flate decompression error: {}",
+                            e
+                        )));
+                    }
                 }
             }
         }

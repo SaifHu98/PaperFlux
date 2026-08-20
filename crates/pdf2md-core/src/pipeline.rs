@@ -202,7 +202,7 @@ impl Pipeline {
                 self.page_cache.insert(page_hash, page_out.section.clone());
             }
 
-            if page_out.is_ocr {
+            if page_out.is_ocr || raw_page.is_scanned {
                 ocr_pages_count += 1;
             } else {
                 text_pages_count += 1;

@@ -168,6 +168,12 @@ impl Pipeline {
 
         let layout_time_ms = layout_start.elapsed().as_millis() as u64;
 
+        // 3.5 Cross-page table stitching across consecutive sections
+        if self.config.detect_tables {
+            let table_stitcher = pdf2md_table::CrossPageTableStitcher::default();
+            table_stitcher.stitch_document(&mut doc);
+        }
+
         // 4. Render Markdown
         let render_start = Instant::now();
         let renderer = MarkdownRenderer::new(self.config.to_render_options());

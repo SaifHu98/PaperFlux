@@ -144,6 +144,39 @@ impl ArabicTableExtractor {
 
         (formatted, diagnostics)
     }
+
+    /// Stitches two consecutive Arabic/RTL tables across page boundaries, eliminating duplicate headers
+    pub fn stitch_arabic_tables(
+        t1_headers: &[TableRow],
+        t1_rows: &[TableRow],
+        t2_headers: &[TableRow],
+        t2_rows: &[TableRow],
+    ) -> Option<(Vec<TableRow>, Vec<TableRow>, ArabicTableDiagnostics)> {
+        let stitcher = crate::stitching::CrossPageTableStitcher::default();
+        let t1_node = pdf2md_ast::Node::Table {
+            headers: t1_headers.to_vec(),
+            rows: t1_rows.to_vec(),
+            caption: None,
+            confidence: 0.98,
+            has_borders: true,
+            bbox: None,
+        };
+        let t2_node = pdf2md_ast::Node::Table {
+            headers: t2_headers.to_vec(),
+            rows: t2_rows.to_vec(),
+            caption: None,
+            confidence: 0.98,
+            has_borders: true,
+            bbox: None,
+        };
+
+        if let Some(pdf2md_ast::Node::Table { headers, rows, .. }) = stitcher.stitch_two_tables(&t1_node, &t2_node) {
+            let (seq_headers, seq_rows, diag) = Self::sequence_table_rtl(&headers, &rows);
+            Some((seq_headers, seq_rows, diag))
+        } else {
+            None
+        }
+    }
 }
 
 fn format_rtl_gfm_table(

@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::arabic::context::{ArabicProcessingContext, NumeralSystem};
 use crate::arabic::numerals::ArabicNumerals;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ArabicNumericExpression {
@@ -46,8 +46,16 @@ impl ArabicSemanticNormalizer {
             }
 
             // 2. Date pattern: YYYY/MM/DD or DD/MM/YYYY with / or -
-            if (w.contains('/') || w.contains('-')) && w.chars().any(|c| c.is_ascii_digit() || ('٠'..='٩').contains(&c) || ('۰'..='۹').contains(&c)) {
-                let parts: Vec<&str> = if w.contains('/') { w.split('/').collect() } else { w.split('-').collect() };
+            if (w.contains('/') || w.contains('-'))
+                && w.chars().any(|c| {
+                    c.is_ascii_digit() || ('٠'..='٩').contains(&c) || ('۰'..='۹').contains(&c)
+                })
+            {
+                let parts: Vec<&str> = if w.contains('/') {
+                    w.split('/').collect()
+                } else {
+                    w.split('-').collect()
+                };
                 if parts.len() == 3 {
                     expressions.push(ArabicNumericExpression::Date(w.to_string()));
                     i += 1;
@@ -56,7 +64,10 @@ impl ArabicSemanticNormalizer {
             }
 
             // 3. Time pattern: HH:MM with : or ٫
-            if w.contains(':') && w.chars().any(|c| c.is_ascii_digit() || ('٠'..='٩').contains(&c)) {
+            if w.contains(':')
+                && w.chars()
+                    .any(|c| c.is_ascii_digit() || ('٠'..='٩').contains(&c))
+            {
                 expressions.push(ArabicNumericExpression::Time(w.to_string()));
                 i += 1;
                 continue;
@@ -65,8 +76,18 @@ impl ArabicSemanticNormalizer {
             // 4. Currency: value followed by currency unit (ر.س, SAR, ج.م, د.إ, $, €)
             if i + 1 < words.len() {
                 let next = words[i + 1];
-                let is_curr = matches!(next, "ر.س" | "SAR" | "ج.م" | "د.إ" | "د.ك" | "$" | "€" | "ريال" | "جنيه" | "درهم");
-                let is_val = w.chars().all(|c| c.is_ascii_digit() || ('٠'..='٩').contains(&c) || ('۰'..='۹').contains(&c) || c == '.' || c == '٫' || c == ',');
+                let is_curr = matches!(
+                    next,
+                    "ر.س" | "SAR" | "ج.م" | "د.إ" | "د.ك" | "$" | "€" | "ريال" | "جنيه" | "درهم"
+                );
+                let is_val = w.chars().all(|c| {
+                    c.is_ascii_digit()
+                        || ('٠'..='٩').contains(&c)
+                        || ('۰'..='۹').contains(&c)
+                        || c == '.'
+                        || c == '٫'
+                        || c == ','
+                });
 
                 if is_curr && is_val {
                     expressions.push(ArabicNumericExpression::Currency {
@@ -95,7 +116,10 @@ impl ArabicSemanticNormalizer {
             // 7. Page references: ص. 12, ص 25-30
             if (w == "ص." || w == "ص") && i + 1 < words.len() {
                 let next = words[i + 1];
-                expressions.push(ArabicNumericExpression::PageReference(format!("{} {}", w, next)));
+                expressions.push(ArabicNumericExpression::PageReference(format!(
+                    "{} {}",
+                    w, next
+                )));
                 i += 2;
                 continue;
             }
@@ -125,42 +149,80 @@ impl ArabicScholarlyDetector {
         let clean = heading_text.trim().to_lowercase();
 
         // 1. Abstract
-        if clean.contains("المستخلص") || clean.contains("ملخص") || clean.contains("خلاصة") || clean.contains("abstract") {
+        if clean.contains("المستخلص")
+            || clean.contains("ملخص")
+            || clean.contains("خلاصة")
+            || clean.contains("abstract")
+        {
             return Some((ArabicScholarlySectionKind::Abstract, 2));
         }
 
         // 2. Introduction
-        if clean.contains("المقدمة") || clean.contains("مقدمة") || clean.contains("توطئة") || clean.contains("تمهيد") || clean.contains("مدخل") || clean.contains("introduction") {
+        if clean.contains("المقدمة")
+            || clean.contains("مقدمة")
+            || clean.contains("توطئة")
+            || clean.contains("تمهيد")
+            || clean.contains("مدخل")
+            || clean.contains("introduction")
+        {
             return Some((ArabicScholarlySectionKind::Introduction, 2));
         }
 
         // 3. Methodology
-        if clean.contains("المنهجية") || clean.contains("منهج البحث") || clean.contains("طريقة البحث") || clean.contains("إجراءات الدراسة") || clean.contains("المواد والطرائق") || clean.contains("methodology") {
+        if clean.contains("المنهجية")
+            || clean.contains("منهج البحث")
+            || clean.contains("طريقة البحث")
+            || clean.contains("إجراءات الدراسة")
+            || clean.contains("المواد والطرائق")
+            || clean.contains("methodology")
+        {
             return Some((ArabicScholarlySectionKind::Methodology, 2));
         }
 
         // 4. Results
-        if clean.contains("النتائج") || clean.contains("معطيات الدراسة") || clean.contains("findings") || clean.contains("results") {
+        if clean.contains("النتائج")
+            || clean.contains("معطيات الدراسة")
+            || clean.contains("findings")
+            || clean.contains("results")
+        {
             return Some((ArabicScholarlySectionKind::Results, 2));
         }
 
         // 5. Discussion
-        if clean.contains("المناقشة") || clean.contains("مناقشة النتائج") || clean.contains("تحليل النتائج") || clean.contains("discussion") {
+        if clean.contains("المناقشة")
+            || clean.contains("مناقشة النتائج")
+            || clean.contains("تحليل النتائج")
+            || clean.contains("discussion")
+        {
             return Some((ArabicScholarlySectionKind::Discussion, 2));
         }
 
         // 6. Conclusion
-        if clean.contains("الخاتمة") || clean.contains("الاستنتاج") || clean.contains("خاتمة البحث") || clean.contains("التوصيات") || clean.contains("conclusion") {
+        if clean.contains("الخاتمة")
+            || clean.contains("الاستنتاج")
+            || clean.contains("خاتمة البحث")
+            || clean.contains("التوصيات")
+            || clean.contains("conclusion")
+        {
             return Some((ArabicScholarlySectionKind::Conclusion, 2));
         }
 
         // 7. References
-        if clean.contains("المراجع") || clean.contains("المصادر") || clean.contains("قائمة المراجع") || clean.contains("ثبت المراجع") || clean.contains("references") {
+        if clean.contains("المراجع")
+            || clean.contains("المصادر")
+            || clean.contains("قائمة المراجع")
+            || clean.contains("ثبت المراجع")
+            || clean.contains("references")
+        {
             return Some((ArabicScholarlySectionKind::References, 2));
         }
 
         // 8. Footnotes
-        if clean.contains("الهوامش") || clean.contains("الحواشي") || clean.contains("شروح وتوضيحات") || clean.contains("footnotes") {
+        if clean.contains("الهوامش")
+            || clean.contains("الحواشي")
+            || clean.contains("شروح وتوضيحات")
+            || clean.contains("footnotes")
+        {
             return Some((ArabicScholarlySectionKind::Footnotes, 2));
         }
 
@@ -169,7 +231,7 @@ impl ArabicScholarlyDetector {
 
     /// Formats academic headings with appropriate Markdown header syntax
     pub fn format_scholarly_heading(heading: &str, level: usize) -> String {
-        let prefix = "#".repeat(level.max(1).min(6));
+        let prefix = "#".repeat(level.clamp(1, 6));
         format!("{} {}", prefix, heading.trim())
     }
 

@@ -8,7 +8,10 @@ fn create_synthetic_pdf(text_lines: &[&str]) -> Vec<u8> {
         if i > 0 {
             stream_content.push_str("0 -15 Td\n");
         }
-        stream_content.push_str(&format!("({}) Tj\n", line.replace('(', "\\(").replace(')', "\\)")));
+        stream_content.push_str(&format!(
+            "({}) Tj\n",
+            line.replace('(', "\\(").replace(')', "\\)")
+        ));
     }
     stream_content.push_str("ET\n");
 
@@ -30,7 +33,10 @@ fn create_synthetic_pdf(text_lines: &[&str]) -> Vec<u8> {
 
 #[test]
 fn test_end_to_end_simple_conversion() {
-    let lines = ["Introduction", "This is the first paragraph of the document."];
+    let lines = [
+        "Introduction",
+        "This is the first paragraph of the document.",
+    ];
     let pdf_bytes = create_synthetic_pdf(&lines);
 
     let config = Config::builder()
@@ -38,7 +44,9 @@ fn test_end_to_end_simple_conversion() {
         .build();
 
     let converter = Converter::new(config);
-    let result = converter.convert_bytes(&pdf_bytes).expect("Conversion should succeed");
+    let result = converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Conversion should succeed");
 
     assert!(!result.markdown.is_empty());
     assert!(result.markdown.contains("Introduction") || result.markdown.contains("paragraph"));
@@ -57,9 +65,14 @@ fn test_end_to_end_list_detection() {
 
     let config = Config::builder().build();
     let converter = Converter::new(config);
-    let result = converter.convert_bytes(&pdf_bytes).expect("Conversion should succeed");
+    let result = converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Conversion should succeed");
 
-    assert!(result.markdown.contains("- High performance") || result.markdown.contains("High performance"));
+    assert!(
+        result.markdown.contains("- High performance")
+            || result.markdown.contains("High performance")
+    );
 }
 
 #[test]
@@ -89,7 +102,10 @@ fn create_synthetic_pdf_with_gaps(lines_and_offsets: &[(&str, f32)]) -> Vec<u8> 
         if i > 0 {
             stream_content.push_str(&format!("0 -{:.1} Td\n", dy));
         }
-        stream_content.push_str(&format!("({}) Tj\n", line.replace('(', "\\(").replace(')', "\\)")));
+        stream_content.push_str(&format!(
+            "({}) Tj\n",
+            line.replace('(', "\\(").replace(')', "\\)")
+        ));
     }
     stream_content.push_str("ET\n");
 
@@ -120,24 +136,29 @@ fn test_end_to_end_statistical_paragraph_boundary_detection() {
 
     let pdf_bytes = create_synthetic_pdf_with_gaps(&lines_and_gaps);
 
-    let config = Config::builder()
-        .paragraph_gap_threshold(1.4)
-        .build();
+    let config = Config::builder().paragraph_gap_threshold(1.4).build();
 
     let converter = Converter::new(config);
-    let result = converter.convert_bytes(&pdf_bytes).expect("Conversion should succeed");
+    let result = converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Conversion should succeed");
 
     assert!(!result.markdown.is_empty());
     assert!(result.markdown.contains("First paragraph line one."));
     assert!(result.markdown.contains("Second paragraph starts after"));
 
     // Check that there are at least two distinct paragraph nodes in the AST document
-    let para_count = result.document.sections.iter()
+    let para_count = result
+        .document
+        .sections
+        .iter()
         .flat_map(|s| s.elements.iter())
         .filter(|node| matches!(node, pdf2md_ast::Node::Paragraph { .. }))
         .count();
 
-    assert!(para_count >= 2, "Expected at least 2 distinct paragraphs, found {}", para_count);
+    assert!(
+        para_count >= 2,
+        "Expected at least 2 distinct paragraphs, found {}",
+        para_count
+    );
 }
-
-

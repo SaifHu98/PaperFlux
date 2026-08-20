@@ -1,9 +1,9 @@
+use clap::{Parser, ValueEnum};
+use pdf2md_core::{Config, Converter, MarkdownDialect, OcrMode, PageBreakStyle};
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process;
-use clap::{Parser, ValueEnum};
-use pdf2md_core::{Config, Converter, MarkdownDialect, OcrMode, PageBreakStyle};
 
 #[derive(Parser, Debug)]
 #[command(

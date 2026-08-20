@@ -95,13 +95,7 @@ impl ArabicNumerals {
             match c {
                 '٠'..='٩' => eastern_count += 1,
                 '0'..='9' => western_count += 1,
-                '۰'..='۹' => {
-                    if matches!(c, '۴' | '۵' | '۶') {
-                        perso_count += 1;
-                    } else {
-                        perso_count += 1;
-                    }
-                }
+                '۰'..='۹' => perso_count += 1,
                 _ => {}
             }
         }

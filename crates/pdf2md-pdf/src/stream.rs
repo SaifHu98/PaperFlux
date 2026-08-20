@@ -1,12 +1,15 @@
+use crate::security::{SecurityError, SecurityLimits};
 use flate2::read::ZlibDecoder;
 use std::io::Read;
-use crate::security::{SecurityError, SecurityLimits};
 
 pub struct StreamDecoder;
 
 impl StreamDecoder {
     /// Safely decompresses a FlateDecode (Zlib) stream with strict decompression bomb checks
-    pub fn decode_flate(compressed: &[u8], limits: &SecurityLimits) -> Result<Vec<u8>, SecurityError> {
+    pub fn decode_flate(
+        compressed: &[u8],
+        limits: &SecurityLimits,
+    ) -> Result<Vec<u8>, SecurityError> {
         if compressed.is_empty() {
             return Ok(Vec::new());
         }
@@ -26,7 +29,10 @@ impl StreamDecoder {
                     total_read += n;
 
                     if total_read > max_allowed_bytes {
-                        return Err(SecurityError::StreamSizeExceeded(total_read, max_allowed_bytes));
+                        return Err(SecurityError::StreamSizeExceeded(
+                            total_read,
+                            max_allowed_bytes,
+                        ));
                     }
 
                     let current_ratio = (total_read as f32) / (compressed.len().max(1) as f32);
@@ -88,7 +94,11 @@ impl StreamDecoder {
     }
 }
 
-pub fn decode_stream(compressed: &[u8], filter: Option<&str>, limits: &SecurityLimits) -> Result<Vec<u8>, SecurityError> {
+pub fn decode_stream(
+    compressed: &[u8],
+    filter: Option<&str>,
+    limits: &SecurityLimits,
+) -> Result<Vec<u8>, SecurityError> {
     match filter {
         Some("FlateDecode") => StreamDecoder::decode_flate(compressed, limits),
         Some("ASCIIHexDecode") => StreamDecoder::decode_ascii_hex(compressed),
@@ -117,8 +127,10 @@ pub mod tests {
         encoder.write_all(&zeros).unwrap();
         let compressed = encoder.finish().unwrap();
 
-        let mut limits = SecurityLimits::default();
-        limits.max_decompressed_stream_bytes = 1024 * 1024; // 1 MB limit
+        let limits = SecurityLimits {
+            max_decompressed_stream_bytes: 1024 * 1024, // 1 MB limit
+            ..Default::default()
+        };
 
         let res = StreamDecoder::decode_flate(&compressed, &limits);
         assert!(res.is_err(), "Decompression bomb must be rejected");

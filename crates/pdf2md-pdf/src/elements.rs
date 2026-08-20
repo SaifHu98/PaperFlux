@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_ast::geometry::{Baseline, BoundingBox, Color, Matrix, Point, Rect, WritingDirection};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TextSpan {

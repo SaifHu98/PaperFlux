@@ -1,30 +1,20 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum MarkdownDialect {
     CommonMark,
+    #[default]
     GitHubFlavored,
     Extended,
 }
 
-impl Default for MarkdownDialect {
-    fn default() -> Self {
-        Self::GitHubFlavored
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum PageBreakStyle {
     None,
     ThematicBreak, // ---
-    HtmlComment,   // <!-- pagebreak -->
+    #[default]
+    HtmlComment, // <!-- pagebreak -->
     CustomMarker,  // [[Page X]]
-}
-
-impl Default for PageBreakStyle {
-    fn default() -> Self {
-        Self::HtmlComment
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

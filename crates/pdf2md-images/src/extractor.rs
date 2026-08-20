@@ -1,7 +1,7 @@
-use std::fs;
-use std::path::PathBuf;
 use pdf2md_ast::Node;
 use pdf2md_pdf::elements::ImageObject;
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct ImageExtractorConfig {

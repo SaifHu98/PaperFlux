@@ -1,12 +1,12 @@
+use crate::captions::CaptionDetector;
+use crate::footnotes::FootnoteDetector;
+use crate::headings::HeadingClassifier;
+use crate::lists::{create_list_node, detect_list_item};
 use pdf2md_ast::{InlineNode, Node};
 use pdf2md_pdf::elements::TextSpan;
 use pdf2md_text::cjk::join_lines_cjk_aware;
 use pdf2md_text::hyphenation::merge_hyphenated_lines;
 use pdf2md_text::normalizer::TextNormalizer;
-use crate::captions::CaptionDetector;
-use crate::footnotes::FootnoteDetector;
-use crate::headings::HeadingClassifier;
-use crate::lists::{create_list_node, detect_list_item};
 
 #[derive(Debug, Clone)]
 pub struct TextLine {
@@ -60,7 +60,8 @@ impl ParagraphReconstructor {
             let gap = (lines[i + 1].y - lines[i].y).abs();
             gaps.push(gap);
         }
-        let gap_stats = crate::arabic_paragraph::ArabicParagraphReconstructor::analyze_line_gaps(&gaps);
+        let gap_stats =
+            crate::arabic_paragraph::ArabicParagraphReconstructor::analyze_line_gaps(&gaps);
 
         let mut nodes = Vec::new();
         let mut current_para_lines: Vec<TextLine> = Vec::new();
@@ -70,7 +71,9 @@ impl ParagraphReconstructor {
             let line_text = line_to_plain_text(&line);
 
             // Check if this line is a list item
-            if let Some((ordered, bullet, content, level)) = detect_list_item(&line_text, line.x_start) {
+            if let Some((ordered, bullet, content, level)) =
+                detect_list_item(&line_text, line.x_start)
+            {
                 if !current_para_lines.is_empty() {
                     nodes.push(self.create_paragraph_node(&current_para_lines));
                     current_para_lines.clear();
@@ -150,7 +153,12 @@ impl ParagraphReconstructor {
 
         // Check for CodeBlock: all spans are monospace
         let is_monospace = lines.iter().all(|l| l.spans.iter().all(|s| s.is_monospace));
-        if is_monospace && (lines.len() >= 2 || normalized.contains('{') || normalized.contains("fn ") || normalized.contains("def ")) {
+        if is_monospace
+            && (lines.len() >= 2
+                || normalized.contains('{')
+                || normalized.contains("fn ")
+                || normalized.contains("def "))
+        {
             return Node::CodeBlock {
                 language: None,
                 code: normalized,
@@ -159,7 +167,9 @@ impl ParagraphReconstructor {
         }
 
         // Check for BlockQuote: lines are significantly indented from left margin (> 24pt) or start with quote marks
-        let is_indented_quote = lines.iter().all(|l| l.x_start > self.column_left_margin + 20.0);
+        let is_indented_quote = lines
+            .iter()
+            .all(|l| l.x_start > self.column_left_margin + 20.0);
         let is_italic_quote = lines.iter().all(|l| l.spans.iter().all(|s| s.is_italic));
         if (is_indented_quote || is_italic_quote) && normalized.len() > 20 {
             let inner_para = Node::Paragraph {
@@ -191,9 +201,15 @@ pub fn group_spans_into_lines(spans: &[TextSpan]) -> Vec<TextLine> {
     // Sort by Y first, then by X
     sorted_spans.sort_by(|a, b| {
         if (a.bbox.y - b.bbox.y).abs() < 3.0 {
-            a.bbox.x.partial_cmp(&b.bbox.x).unwrap_or(std::cmp::Ordering::Equal)
+            a.bbox
+                .x
+                .partial_cmp(&b.bbox.x)
+                .unwrap_or(std::cmp::Ordering::Equal)
         } else {
-            a.bbox.y.partial_cmp(&b.bbox.y).unwrap_or(std::cmp::Ordering::Equal)
+            a.bbox
+                .y
+                .partial_cmp(&b.bbox.y)
+                .unwrap_or(std::cmp::Ordering::Equal)
         }
     });
 

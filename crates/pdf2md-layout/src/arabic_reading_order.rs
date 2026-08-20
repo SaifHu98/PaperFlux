@@ -60,11 +60,16 @@ impl ArabicReadingOrderEngine {
 
         for span in body_candidates {
             let is_high_y = (span.bbox.y + span.bbox.height) >= max_body_y - 100.0;
-            let is_title_banner = is_high_y && (span.font_size >= 16.0 || (span.font_size >= 13.0 && span.is_bold));
+            let is_title_banner =
+                is_high_y && (span.font_size >= 16.0 || (span.font_size >= 13.0 && span.is_bold));
 
             if is_title_banner {
                 spanning_title_spans.push(span);
-            } else if is_high_y && (span.text.contains("المستخلص") || span.text.contains("ملخص") || span.text.contains("Abstract")) {
+            } else if is_high_y
+                && (span.text.contains("المستخلص")
+                    || span.text.contains("ملخص")
+                    || span.text.contains("Abstract"))
+            {
                 author_abstract_spans.push(span);
             } else {
                 remaining_body.push(span);
@@ -129,7 +134,9 @@ fn cluster_rtl_columns(
     let mut sidebars = Vec::new();
 
     // Check if document is 2-column or 3-column
-    let is_multi_col = spans.iter().any(|s| s.bbox.width <= page_width * 0.48 && s.bbox.width >= 50.0);
+    let is_multi_col = spans
+        .iter()
+        .any(|s| s.bbox.width <= page_width * 0.48 && s.bbox.width >= 50.0);
 
     if !is_multi_col {
         // Single column document
@@ -139,7 +146,9 @@ fn cluster_rtl_columns(
     for span in spans {
         let x_center = span.bbox.x + span.bbox.width / 2.0;
 
-        if span.bbox.width < page_width * 0.22 && (span.bbox.x > page_width * 0.78 || span.bbox.x < page_width * 0.22) {
+        if span.bbox.width < page_width * 0.22
+            && (span.bbox.x > page_width * 0.78 || span.bbox.x < page_width * 0.22)
+        {
             sidebars.push(span.clone());
         } else if x_center > x_mid + 20.0 {
             // Right column (Arabic Column 1)
@@ -185,7 +194,10 @@ fn sort_rtl_spans(spans: &[TextSpan]) -> Vec<TextSpan> {
 
         if (y_a - y_b).abs() < f32::EPSILON {
             // Same line in RTL -> Rightmost span comes first (X descending)
-            b.bbox.x.partial_cmp(&a.bbox.x).unwrap_or(std::cmp::Ordering::Equal)
+            b.bbox
+                .x
+                .partial_cmp(&a.bbox.x)
+                .unwrap_or(std::cmp::Ordering::Equal)
         } else {
             // Top to bottom (Y descending in PDF coordinate space)
             y_b.partial_cmp(&y_a).unwrap_or(std::cmp::Ordering::Equal)

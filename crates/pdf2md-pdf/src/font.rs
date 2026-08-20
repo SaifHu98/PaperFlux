@@ -17,9 +17,16 @@ pub struct FontMap {
 impl FontMap {
     pub fn new(name: String, base_font: String) -> Self {
         let lower = base_font.to_lowercase();
-        let is_bold = lower.contains("bold") || lower.contains("black") || lower.contains("heavy") || lower.contains("b-");
-        let is_italic = lower.contains("italic") || lower.contains("oblique") || lower.contains("it-");
-        let is_monospace = lower.contains("courier") || lower.contains("mono") || lower.contains("consolas") || lower.contains("code");
+        let is_bold = lower.contains("bold")
+            || lower.contains("black")
+            || lower.contains("heavy")
+            || lower.contains("b-");
+        let is_italic =
+            lower.contains("italic") || lower.contains("oblique") || lower.contains("it-");
+        let is_monospace = lower.contains("courier")
+            || lower.contains("mono")
+            || lower.contains("consolas")
+            || lower.contains("code");
 
         Self {
             name,
@@ -42,7 +49,11 @@ impl FontMap {
             }
         }
 
-        let decoded = crate::arabic_font_recovery::ArabicFontDecoder::recover_glyph(code, None, &self.to_unicode);
+        let decoded = crate::arabic_font_recovery::ArabicFontDecoder::recover_glyph(
+            code,
+            None,
+            &self.to_unicode,
+        );
 
         if let Ok(mut cache) = self.glyph_cache.write() {
             cache.insert(code, decoded.clone());
@@ -60,13 +71,22 @@ impl FontMap {
             let line = lines[i].trim();
 
             if line.ends_with("beginbfchar") {
-                let count = line.split_whitespace().next().and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+                let count = line
+                    .split_whitespace()
+                    .next()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(0);
                 i += 1;
                 let mut processed = 0;
-                while i < lines.len() && !lines[i].trim().ends_with("endbfchar") && (count == 0 || processed < count) {
-                    let parts: Vec<&str> = lines[i].trim().split_whitespace().collect();
+                while i < lines.len()
+                    && !lines[i].trim().ends_with("endbfchar")
+                    && (count == 0 || processed < count)
+                {
+                    let parts: Vec<&str> = lines[i].split_whitespace().collect();
                     if parts.len() >= 2 {
-                        if let (Some(code), Some(uni)) = (parse_hex_code(parts[0]), parse_hex_unicode(parts[1])) {
+                        if let (Some(code), Some(uni)) =
+                            (parse_hex_code(parts[0]), parse_hex_unicode(parts[1]))
+                        {
                             self.to_unicode.insert(code, uni);
                             processed += 1;
                         }
@@ -74,18 +94,28 @@ impl FontMap {
                     i += 1;
                 }
             } else if line.ends_with("beginbfrange") {
-                let count = line.split_whitespace().next().and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+                let count = line
+                    .split_whitespace()
+                    .next()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(0);
                 i += 1;
                 let mut processed = 0;
-                while i < lines.len() && !lines[i].trim().ends_with("endbfrange") && (count == 0 || processed < count) {
-                    let parts: Vec<&str> = lines[i].trim().split_whitespace().collect();
+                while i < lines.len()
+                    && !lines[i].trim().ends_with("endbfrange")
+                    && (count == 0 || processed < count)
+                {
+                    let parts: Vec<&str> = lines[i].split_whitespace().collect();
                     if parts.len() >= 3 {
-                        if let (Some(start_code), Some(end_code)) = (parse_hex_code(parts[0]), parse_hex_code(parts[1])) {
+                        if let (Some(start_code), Some(end_code)) =
+                            (parse_hex_code(parts[0]), parse_hex_code(parts[1]))
+                        {
                             if parts[2].starts_with('<') {
                                 if let Some(start_uni_code) = parse_hex_code(parts[2]) {
                                     for offset in 0..=(end_code.saturating_sub(start_code)) {
                                         if let Some(ch) = char::from_u32(start_uni_code + offset) {
-                                            self.to_unicode.insert(start_code + offset, ch.to_string());
+                                            self.to_unicode
+                                                .insert(start_code + offset, ch.to_string());
                                         }
                                     }
                                 }
@@ -108,7 +138,7 @@ fn parse_hex_code(hex_str: &str) -> Option<u32> {
 
 fn parse_hex_unicode(hex_str: &str) -> Option<String> {
     let clean = hex_str.trim().trim_start_matches('<').trim_end_matches('>');
-    if clean.len() % 4 == 0 {
+    if clean.len().is_multiple_of(4) {
         let mut s = String::new();
         for chunk in clean.as_bytes().chunks(4) {
             if let Ok(chunk_str) = std::str::from_utf8(chunk) {
@@ -124,7 +154,9 @@ fn parse_hex_unicode(hex_str: &str) -> Option<String> {
         }
     }
 
-    parse_hex_code(hex_str).and_then(char::from_u32).map(|c| c.to_string())
+    parse_hex_code(hex_str)
+        .and_then(char::from_u32)
+        .map(|c| c.to_string())
 }
 
 #[cfg(test)]

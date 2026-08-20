@@ -1,14 +1,15 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_pdf::elements::TextSpan;
-use pdf2md_text::arabic::pipeline::ArabicTextPipeline;
 use pdf2md_text::arabic::context::ArabicProcessingContext;
+use pdf2md_text::arabic::pipeline::ArabicTextPipeline;
+use serde::{Deserialize, Serialize};
 
 pub struct ArabicWordBoundaryDetector;
 
 impl ArabicWordBoundaryDetector {
     /// Checks if a character connects to both right and left (dual-joining)
     pub fn is_dual_joining(ch: char) -> bool {
-        matches!(ch,
+        matches!(
+            ch,
             'ب' | 'ت' | 'ث' | 'ج' | 'ح' | 'خ' | 'س' | 'ش' | 'ص' | 'ض' | 'ط' | 'ظ'
             | 'ع' | 'غ' | 'ف' | 'ق' | 'ك' | 'ل' | 'م' | 'ن' | 'ه' | 'ي' | 'ئ' | 'ـ'
             // Persian / Urdu / Kurdish extensions
@@ -22,7 +23,8 @@ impl ArabicWordBoundaryDetector {
 
     /// Checks if a character connects only to the right (right-joining)
     pub fn is_right_joining(ch: char) -> bool {
-        matches!(ch,
+        matches!(
+            ch,
             'ا' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'د' | 'ذ' | 'ر' | 'ز' | 'و' | 'ؤ' | 'ة' | 'ى' | 'ء'
             // Persian / Urdu / Kurdish extensions
             | 'ژ' | 'ڈ' | 'ڑ' | 'ڕ'
@@ -66,7 +68,12 @@ impl ArabicLineReconstructor {
 
         // Sort spans right-to-left (X descending)
         let mut sorted = spans.to_vec();
-        sorted.sort_by(|a, b| b.bbox.x.partial_cmp(&a.bbox.x).unwrap_or(std::cmp::Ordering::Equal));
+        sorted.sort_by(|a, b| {
+            b.bbox
+                .x
+                .partial_cmp(&a.bbox.x)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         let mut line_text = String::new();
         let mut prev_span: Option<&TextSpan> = None;
@@ -162,7 +169,8 @@ impl ArabicParagraphReconstructor {
 
         if stats.sample_count >= 3 && stats.std_dev > 0.5 {
             // Statistical cluster boundary: gaps > median + 1.2 * std_dev represent paragraph breaks
-            let cluster_boundary = stats.median_gap + (stats.std_dev * 1.2).max(avg_height * (threshold - 1.0));
+            let cluster_boundary =
+                stats.median_gap + (stats.std_dev * 1.2).max(avg_height * (threshold - 1.0));
             if gap > cluster_boundary {
                 GapClassification::InterParagraph
             } else {
@@ -259,7 +267,8 @@ impl ArabicParagraphReconstructor {
                 let gap = (y - prev_y).abs();
                 let avg_height = (height + prev_height) / 2.0;
 
-                let classification = Self::classify_gap(gap, avg_height, &stats, threshold_override);
+                let classification =
+                    Self::classify_gap(gap, avg_height, &stats, threshold_override);
                 if classification == GapClassification::InterParagraph && !current_para.is_empty() {
                     paragraphs.push(current_para.clone());
                     current_para.clear();

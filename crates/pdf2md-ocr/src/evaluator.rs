@@ -21,7 +21,8 @@ impl OcrNecessityEvaluator {
         let mut reasons = Vec::new();
 
         // 1. Check if page has no text spans but has images (Image-only / Scanned page)
-        let is_image_only = page.is_scanned || (page.text_spans.is_empty() && !page.images.is_empty());
+        let is_image_only =
+            page.is_scanned || (page.text_spans.is_empty() && !page.images.is_empty());
         if is_image_only {
             reasons.push("Page is image-only / scanned document".to_string());
             return OcrDecisionReport {
@@ -36,11 +37,19 @@ impl OcrNecessityEvaluator {
         }
 
         // 2. Assess native text quality & corruption
-        let full_text: String = page.text_spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
+        let full_text: String = page
+            .text_spans
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         let native_char_count = full_text.chars().count();
 
         if native_char_count < 15 && !page.images.is_empty() {
-            reasons.push(format!("Very low character count ({}) with images present", native_char_count));
+            reasons.push(format!(
+                "Very low character count ({}) with images present",
+                native_char_count
+            ));
             return OcrDecisionReport {
                 should_ocr: true,
                 ocr_necessity_score: 0.85,

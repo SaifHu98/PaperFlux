@@ -67,21 +67,44 @@ fn test_diwani_font_detection_and_300_dpi_boost() {
 fn test_geometric_cascading_baseline_and_overlap_detection() {
     let mut page = RawPage::new(1, 612.0, 792.0);
     // 4 overlapping spans with vertical cascading step (slanted baseline)
-    page.text_spans.push(make_span("کلمہ اول", "CustomFont1", BoundingBox::new(100.0, 100.0, 80.0, 20.0)));
-    page.text_spans.push(make_span("کلمہ دوم", "CustomFont1", BoundingBox::new(120.0, 108.0, 80.0, 20.0)));
-    page.text_spans.push(make_span("کلمہ سوم", "CustomFont1", BoundingBox::new(140.0, 116.0, 80.0, 20.0)));
-    page.text_spans.push(make_span("کلمہ چہارم", "CustomFont1", BoundingBox::new(160.0, 124.0, 80.0, 20.0)));
+    page.text_spans.push(make_span(
+        "کلمہ اول",
+        "CustomFont1",
+        BoundingBox::new(100.0, 100.0, 80.0, 20.0),
+    ));
+    page.text_spans.push(make_span(
+        "کلمہ دوم",
+        "CustomFont1",
+        BoundingBox::new(120.0, 108.0, 80.0, 20.0),
+    ));
+    page.text_spans.push(make_span(
+        "کلمہ سوم",
+        "CustomFont1",
+        BoundingBox::new(140.0, 116.0, 80.0, 20.0),
+    ));
+    page.text_spans.push(make_span(
+        "کلمہ چہارم",
+        "CustomFont1",
+        BoundingBox::new(160.0, 124.0, 80.0, 20.0),
+    ));
 
     let det = CalligraphyDetector::detect(&page);
     assert!(det.is_calligraphic);
-    assert_eq!(det.script_type, Some(CalligraphicScriptType::GenericCalligraphic));
+    assert_eq!(
+        det.script_type,
+        Some(CalligraphicScriptType::GenericCalligraphic)
+    );
     assert_eq!(det.recommended_dpi, 300);
 }
 
 #[test]
 fn test_standard_naskh_horizontal_typography_normal_dpi() {
     let mut page = RawPage::new(1, 612.0, 792.0);
-    page.text_spans.push(make_span("النص العربي القياسي بخط النسخ", "Traditional Arabic", BoundingBox::new(100.0, 100.0, 300.0, 18.0)));
+    page.text_spans.push(make_span(
+        "النص العربي القياسي بخط النسخ",
+        "Traditional Arabic",
+        BoundingBox::new(100.0, 100.0, 300.0, 18.0),
+    ));
 
     let det = CalligraphyDetector::detect(&page);
     assert!(!det.is_calligraphic);

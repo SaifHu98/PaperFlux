@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_ast::geometry::BoundingBox;
 use pdf2md_pdf::elements::TextSpan;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RegionKind {
@@ -24,7 +24,13 @@ pub struct PageRegion {
 }
 
 impl PageRegion {
-    pub fn new(id: usize, kind: RegionKind, bbox: BoundingBox, spans: Vec<TextSpan>, confidence: f32) -> Self {
+    pub fn new(
+        id: usize,
+        kind: RegionKind,
+        bbox: BoundingBox,
+        spans: Vec<TextSpan>,
+        confidence: f32,
+    ) -> Self {
         Self {
             id,
             kind,

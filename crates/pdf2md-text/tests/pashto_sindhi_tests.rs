@@ -1,6 +1,6 @@
+use pdf2md_text::arabic::bidi_engine::{BidiTokenKind, BidiTokenizer};
 use pdf2md_text::arabic::context::{ArabicShapingMode, DiacriticMode};
 use pdf2md_text::arabic::shaping::ArabicShaper;
-use pdf2md_text::arabic::bidi_engine::{BidiTokenizer, BidiTokenKind};
 use pdf2md_text::language::{Language, LanguageClassifier};
 
 #[test]
@@ -34,7 +34,11 @@ fn test_pashto_presentation_forms_unshaping() {
     // String with Pashto presentation forms A:
     // \u{FB62} (ټ), \u{FB6E} (ځ), \u{FB76} (څ), \u{FB9A} (ګ), \u{FBE4} (ې), \u{FBFC} (ۍ)
     let input = "\u{FB62}\u{FB6E}\u{FB76}\u{FB9A}\u{FBE4}\u{FBFC}";
-    let unshaped = ArabicShaper::unshape(input, ArabicShapingMode::UnshapeToUnicode, DiacriticMode::PreserveHarakat);
+    let unshaped = ArabicShaper::unshape(
+        input,
+        ArabicShapingMode::UnshapeToUnicode,
+        DiacriticMode::PreserveHarakat,
+    );
 
     assert_eq!(unshaped, "ټځڅګېۍ");
 }
@@ -44,7 +48,11 @@ fn test_sindhi_presentation_forms_unshaping() {
     // String with Sindhi presentation forms A:
     // \u{FB52} (ٻ), \u{FB5A} (ڀ), \u{FB5E} (ٽ), \u{FB72} (ڄ), \u{FB96} (ڦ), \u{FB9E} (ڪ), \u{FBA2} (ڳ)
     let input = "\u{FB52}\u{FB5A}\u{FB5E}\u{FB72}\u{FB96}\u{FB9E}\u{FBA2}";
-    let unshaped = ArabicShaper::unshape(input, ArabicShapingMode::UnshapeToUnicode, DiacriticMode::PreserveHarakat);
+    let unshaped = ArabicShaper::unshape(
+        input,
+        ArabicShapingMode::UnshapeToUnicode,
+        DiacriticMode::PreserveHarakat,
+    );
 
     assert_eq!(unshaped, "ٻڀٽڄڦڪڳ");
 }

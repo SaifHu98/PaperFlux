@@ -25,7 +25,8 @@ fn test_default_numeral_preservation() {
 
 #[test]
 fn test_complex_numerical_expressions_detection() {
-    let text = "في تاريخ ٢٠٢٦/٠٨/٢٠ عند الساعة ١٤:٣٠ بلغت النسبة ٩٨٫٥٪ بقيمة ١٥٠ ر.س حسب [1] في ص. 24";
+    let text =
+        "في تاريخ ٢٠٢٦/٠٨/٢٠ عند الساعة ١٤:٣٠ بلغت النسبة ٩٨٫٥٪ بقيمة ١٥٠ ر.س حسب [1] في ص. 24";
     let expressions = ArabicSemanticNormalizer::detect_expressions(text);
 
     assert!(expressions.contains(&ArabicNumericExpression::Date("٢٠٢٦/٠٨/٢٠".to_string())));

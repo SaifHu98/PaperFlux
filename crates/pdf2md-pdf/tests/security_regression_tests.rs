@@ -1,12 +1,12 @@
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
-use std::io::Write;
 use pdf2md_ast::geometry::BoundingBox;
 use pdf2md_images::ImageExtractor;
 use pdf2md_pdf::document::PdfError;
 use pdf2md_pdf::security::{CycleDetector, SecurityError, SecurityLimits};
 use pdf2md_pdf::stream::StreamDecoder;
 use pdf2md_pdf::PdfDocument;
+use std::io::Write;
 
 #[test]
 fn test_security_decompression_bomb_rejected() {
@@ -15,8 +15,10 @@ fn test_security_decompression_bomb_rejected() {
     encoder.write_all(&zeros).unwrap();
     let compressed = encoder.finish().unwrap();
 
-    let mut limits = SecurityLimits::default();
-    limits.max_decompressed_stream_bytes = 2 * 1024 * 1024; // 2MB limit
+    let limits = SecurityLimits {
+        max_decompressed_stream_bytes: 2 * 1024 * 1024, // 2MB limit
+        ..Default::default()
+    };
 
     let result = StreamDecoder::decode_flate(&compressed, &limits);
     assert!(result.is_err(), "Decompression bomb must fail");
@@ -27,7 +29,10 @@ fn test_security_decompression_bomb_rejected() {
         Err(SecurityError::StreamSizeExceeded(sz, max)) => {
             assert!(sz > max);
         }
-        other => panic!("Expected DecompressionBomb or StreamSizeExceeded, got {:?}", other),
+        other => panic!(
+            "Expected DecompressionBomb or StreamSizeExceeded, got {:?}",
+            other
+        ),
     }
 }
 
@@ -42,7 +47,10 @@ fn test_security_cyclic_reference_loop_detected() {
 
     // Object 3 -> Object 1 (Cycle)
     let cycle_res = detector.enter_object(1);
-    assert!(cycle_res.is_err(), "Cyclic loop must be detected and rejected");
+    assert!(
+        cycle_res.is_err(),
+        "Cyclic loop must be detected and rejected"
+    );
     match cycle_res {
         Err(SecurityError::CyclicReference(id)) => assert_eq!(id, 1),
         other => panic!("Expected CyclicReference error, got {:?}", other),
@@ -59,7 +67,10 @@ fn test_security_max_nesting_depth_enforced() {
 
     // 6th object exceeds max depth of 5
     let depth_res = detector.enter_object(6);
-    assert!(depth_res.is_err(), "Exceeding nesting depth must be rejected");
+    assert!(
+        depth_res.is_err(),
+        "Exceeding nesting depth must be rejected"
+    );
     match depth_res {
         Err(SecurityError::NestingDepthExceeded(d)) => assert_eq!(d, 5),
         other => panic!("Expected NestingDepthExceeded error, got {:?}", other),
@@ -78,9 +89,15 @@ fn test_security_path_traversal_image_sanitization() {
 
     for name in &hostile_names {
         let safe = ImageExtractor::sanitize_filename(name, "png");
-        assert!(!safe.contains(".."), "Path traversal token '..' must be eliminated");
+        assert!(
+            !safe.contains(".."),
+            "Path traversal token '..' must be eliminated"
+        );
         assert!(!safe.contains('/'), "Path separator '/' must be eliminated");
-        assert!(!safe.contains('\\'), "Path separator '\\' must be eliminated");
+        assert!(
+            !safe.contains('\\'),
+            "Path separator '\\' must be eliminated"
+        );
         assert!(!safe.contains('\0'), "Null bytes must be eliminated");
         assert!(safe.ends_with(".png"));
     }
@@ -100,7 +117,7 @@ fn test_security_invalid_pdf_header_fails_safely() {
 
 #[test]
 fn test_security_image_dimension_bomb_rejected() {
-    let mut extractor = ImageExtractor::new(pdf2md_images::ImageExtractorConfig {
+    let extractor = ImageExtractor::new(pdf2md_images::ImageExtractorConfig {
         enabled: true,
         ..Default::default()
     });
@@ -115,5 +132,8 @@ fn test_security_image_dimension_bomb_rejected() {
     };
 
     let node = extractor.process_image(&giant_image);
-    assert!(node.is_none(), "Giant image dimension bombs must be rejected without allocation");
+    assert!(
+        node.is_none(),
+        "Giant image dimension bombs must be rejected without allocation"
+    );
 }

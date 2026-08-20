@@ -26,11 +26,7 @@ fn test_rtl_table_direction_and_gfm_formatting() {
 
     let rows = vec![
         TableRow {
-            cells: vec![
-                make_cell("١"),
-                make_cell("أحمد بن علي"),
-                make_cell("٩٨٫٥٪"),
-            ],
+            cells: vec![make_cell("١"), make_cell("أحمد بن علي"), make_cell("٩٨٫٥٪")],
             is_header: false,
         },
         TableRow {
@@ -43,7 +39,8 @@ fn test_rtl_table_direction_and_gfm_formatting() {
         },
     ];
 
-    let (gfm, diag) = ArabicTableExtractor::format_arabic_table(&headers, &rows, Some("بيانات الطلاب"));
+    let (gfm, diag) =
+        ArabicTableExtractor::format_arabic_table(&headers, &rows, Some("بيانات الطلاب"));
 
     assert_eq!(diag.table_direction, WritingDirection::RightToLeft);
     assert!(diag.column_confidence >= 0.95);
@@ -55,11 +52,7 @@ fn test_rtl_table_direction_and_gfm_formatting() {
 #[test]
 fn test_mixed_arabic_english_cells() {
     let headers = vec![TableRow {
-        cells: vec![
-            make_cell("المعرف"),
-            make_cell("المنتج"),
-            make_cell("السعر"),
-        ],
+        cells: vec![make_cell("المعرف"), make_cell("المنتج"), make_cell("السعر")],
         is_header: true,
     }];
 
@@ -82,9 +75,7 @@ fn test_mixed_arabic_english_cells() {
 fn test_complex_merged_cells_html_fallback() {
     let headers = vec![
         TableRow {
-            cells: vec![
-                make_merged_cell("التقرير السنوي", 3, 1),
-            ],
+            cells: vec![make_merged_cell("التقرير السنوي", 3, 1)],
             is_header: true,
         },
         TableRow {
@@ -106,7 +97,8 @@ fn test_complex_merged_cells_html_fallback() {
         is_header: false,
     }];
 
-    let (html, diag) = ArabicTableExtractor::format_arabic_table(&headers, &rows, Some("الميزانية التقديرية"));
+    let (html, diag) =
+        ArabicTableExtractor::format_arabic_table(&headers, &rows, Some("الميزانية التقديرية"));
 
     assert_eq!(diag.table_direction, WritingDirection::RightToLeft);
     assert!(html.contains("<table dir=\"rtl\">"));
@@ -118,10 +110,7 @@ fn test_complex_merged_cells_html_fallback() {
 #[test]
 fn test_multiline_arabic_cells() {
     let headers = vec![TableRow {
-        cells: vec![
-            make_cell("الرمز"),
-            make_cell("الوصف التفصيلي للمشروع"),
-        ],
+        cells: vec![make_cell("الرمز"), make_cell("الوصف التفصيلي للمشروع")],
         is_header: true,
     }];
 

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use pdf2md_pdf::arabic_font_recovery::{
     AdobeArabicGlyphMap, ArabicCorruptionDetector, ArabicFontDecoder,
 };
+use std::collections::HashMap;
 
 #[test]
 fn test_fuzz_arabic_adobe_glyph_names() {
@@ -44,7 +44,10 @@ fn test_fuzz_arabic_pua_and_presentation_forms() {
 
         // Fuzzer checks all PUA codes in range 0xE000..0xF800
         let recovered = ArabicFontDecoder::recover_glyph(pua_code, None, &empty_map);
-        assert!(!recovered.contains('\u{FFFD}'), "Recovered character must not contain replacement char");
+        assert!(
+            !recovered.contains('\u{FFFD}'),
+            "Recovered character must not contain replacement char"
+        );
     }
 }
 
@@ -52,7 +55,10 @@ fn test_fuzz_arabic_pua_and_presentation_forms() {
 fn test_fuzz_arabic_bidi_control_sequences() {
     let mut rng_seed = 0xFEDCBA98u64;
 
-    let bidi_controls = ['\u{200E}', '\u{200F}', '\u{202A}', '\u{202B}', '\u{202C}', '\u{202D}', '\u{202E}', '\u{061C}'];
+    let bidi_controls = [
+        '\u{200E}', '\u{200F}', '\u{202A}', '\u{202B}', '\u{202C}', '\u{202D}', '\u{202E}',
+        '\u{061C}',
+    ];
     for _ in 0..300 {
         rng_seed = rng_seed.wrapping_mul(6364136223846793005).wrapping_add(1);
         let mut text = String::from("تقرير ");

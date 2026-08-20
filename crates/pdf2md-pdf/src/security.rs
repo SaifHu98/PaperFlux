@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Error)]
 pub enum SecurityError {
@@ -71,7 +71,7 @@ pub struct SecurityLimits {
 impl Default for SecurityLimits {
     fn default() -> Self {
         Self {
-            max_file_size_bytes: 512 * 1024 * 1024, // 512 MB
+            max_file_size_bytes: 512 * 1024 * 1024,          // 512 MB
             max_decompressed_stream_bytes: 32 * 1024 * 1024, // 32 MB
             max_decompression_ratio: 100.0,
             max_pages: 5000,

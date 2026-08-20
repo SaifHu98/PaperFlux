@@ -1,6 +1,6 @@
-use thiserror::Error;
 use pdf2md_ast::geometry::BoundingBox;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum OcrError {
@@ -14,18 +14,13 @@ pub enum OcrError {
     InvalidImage(String),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum OcrOrientation {
+    #[default]
     Rot0,
     Rot90,
     Rot180,
     Rot270,
-}
-
-impl Default for OcrOrientation {
-    fn default() -> Self {
-        Self::Rot0
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,7 +88,11 @@ impl OCRProvider for MockOCRProvider {
         true
     }
 
-    fn recognize(&self, _image_bytes: &[u8], _lang_hint: Option<&str>) -> Result<OcrResult, String> {
+    fn recognize(
+        &self,
+        _image_bytes: &[u8],
+        _lang_hint: Option<&str>,
+    ) -> Result<OcrResult, String> {
         Ok(OcrResult {
             text: self.dummy_text.clone(),
             confidence: self.confidence,

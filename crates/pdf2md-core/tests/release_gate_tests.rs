@@ -25,16 +25,29 @@ fn test_release_gate_determinism() {
     let res2 = converter.convert_bytes(&pdf_bytes).unwrap();
     let res3 = converter.convert_bytes(&pdf_bytes).unwrap();
 
-    assert_eq!(res1.markdown, res2.markdown, "Output must be strictly deterministic across run 1 & 2");
-    assert_eq!(res2.markdown, res3.markdown, "Output must be strictly deterministic across run 2 & 3");
-    assert_eq!(res1.diagnostics.overall_confidence, res2.diagnostics.overall_confidence);
+    assert_eq!(
+        res1.markdown, res2.markdown,
+        "Output must be strictly deterministic across run 1 & 2"
+    );
+    assert_eq!(
+        res2.markdown, res3.markdown,
+        "Output must be strictly deterministic across run 2 & 3"
+    );
+    assert_eq!(
+        res1.diagnostics.overall_confidence,
+        res2.diagnostics.overall_confidence
+    );
 }
 
 #[test]
 fn test_release_gate_profiles_validation() {
     let pdf_bytes = create_sample_pdf();
 
-    for profile in [ExecutionProfile::Fast, ExecutionProfile::Balanced, ExecutionProfile::LowMemory] {
+    for profile in [
+        ExecutionProfile::Fast,
+        ExecutionProfile::Balanced,
+        ExecutionProfile::LowMemory,
+    ] {
         let config = Config::builder().profile(profile).build();
         let converter = Converter::new(config);
         let res = converter.convert_bytes(&pdf_bytes);

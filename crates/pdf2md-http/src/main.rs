@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use clap::Parser;
 use pdf2md_core::{Config, Converter};
 use pdf2md_http::HttpServer;
+use std::sync::Arc;
 
 #[derive(Parser, Debug)]
 #[command(

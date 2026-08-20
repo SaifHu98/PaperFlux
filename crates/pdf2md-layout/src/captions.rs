@@ -10,7 +10,11 @@ impl CaptionDetector {
             return None;
         }
 
-        let full_text = spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
+        let full_text = spans
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         let trimmed = full_text.trim();
         let lower = trimmed.to_lowercase();
 
@@ -20,11 +24,20 @@ impl CaptionDetector {
             || lower.starts_with("illustration ")
         {
             CaptionTarget::Figure
-        } else if lower.starts_with("table ") || lower.starts_with("tab. ") || lower.starts_with("tab ") {
+        } else if lower.starts_with("table ")
+            || lower.starts_with("tab. ")
+            || lower.starts_with("tab ")
+        {
             CaptionTarget::Table
-        } else if lower.starts_with("listing ") || lower.starts_with("algorithm ") || lower.starts_with("code ") {
+        } else if lower.starts_with("listing ")
+            || lower.starts_with("algorithm ")
+            || lower.starts_with("code ")
+        {
             CaptionTarget::Code
-        } else if lower.starts_with("equation ") || lower.starts_with("eq. ") || lower.starts_with("eq ") {
+        } else if lower.starts_with("equation ")
+            || lower.starts_with("eq. ")
+            || lower.starts_with("eq ")
+        {
             CaptionTarget::Equation
         } else {
             return None;

@@ -1,16 +1,31 @@
-use std::collections::HashMap;
 use pdf2md_pdf::arabic_font_recovery::{
     AdobeArabicGlyphMap, ArabicCorruptionDetector, ArabicFontDecoder,
 };
 use pdf2md_text::arabic::joining::ArabicJoiningReconstructor;
+use std::collections::HashMap;
 
 #[test]
 fn test_adobe_arabic_glyph_names_and_afii_recovery() {
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("afii57414").unwrap(), "ا");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("afii57415").unwrap(), "ب");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("afii57442").unwrap(), "و");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("lam_alef").unwrap(), "لا");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("allah").unwrap(), "الله");
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("afii57414").unwrap(),
+        "ا"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("afii57415").unwrap(),
+        "ب"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("afii57442").unwrap(),
+        "و"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("lam_alef").unwrap(),
+        "لا"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("allah").unwrap(),
+        "الله"
+    );
     assert_eq!(
         AdobeArabicGlyphMap::glyph_name_to_unicode("sallallahou_alayhe_wasallam").unwrap(),
         "صلى الله عليه وسلم"
@@ -19,16 +34,31 @@ fn test_adobe_arabic_glyph_names_and_afii_recovery() {
         AdobeArabicGlyphMap::glyph_name_to_unicode("bismillah").unwrap(),
         "بسم الله الرحمن الرحيم"
     );
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("rial").unwrap(), "ريال");
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("rial").unwrap(),
+        "ريال"
+    );
 }
 
 #[test]
 fn test_uni_and_hex_pattern_recovery() {
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("uni0627").unwrap(), "ا");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("uni0628").unwrap(), "ب");
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("uni0627").unwrap(),
+        "ا"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("uni0628").unwrap(),
+        "ب"
+    );
     // uniFE8D is Alef isolated presentation form -> unshaped to \u0627
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("uniFE8D").unwrap(), "ا");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("u0645").unwrap(), "م");
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("uniFE8D").unwrap(),
+        "ا"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("u0645").unwrap(),
+        "م"
+    );
 }
 
 #[test]
@@ -75,23 +105,56 @@ fn test_broken_lam_alef_repair() {
 
 #[test]
 fn test_arabic_corruption_detector() {
-    assert!(ArabicCorruptionDetector::detect_isolated_glyph_corruption("ت ق ر ي ر"));
-    assert!(!ArabicCorruptionDetector::detect_isolated_glyph_corruption("تقرير كامل عن النظام"));
+    assert!(ArabicCorruptionDetector::detect_isolated_glyph_corruption(
+        "ت ق ر ي ر"
+    ));
+    assert!(!ArabicCorruptionDetector::detect_isolated_glyph_corruption(
+        "تقرير كامل عن النظام"
+    ));
 
-    assert!(ArabicCorruptionDetector::detect_broken_lam_alef("ل ا يجوز ذلك"));
-    assert!(!ArabicCorruptionDetector::detect_broken_lam_alef("لا يجوز ذلك"));
+    assert!(ArabicCorruptionDetector::detect_broken_lam_alef(
+        "ل ا يجوز ذلك"
+    ));
+    assert!(!ArabicCorruptionDetector::detect_broken_lam_alef(
+        "لا يجوز ذلك"
+    ));
 
-    assert!(ArabicCorruptionDetector::detect_pua_leakage("نص يحتوي على رمز \u{E001} خاص"));
-    assert!(!ArabicCorruptionDetector::detect_pua_leakage("نص عربي سليم"));
+    assert!(ArabicCorruptionDetector::detect_pua_leakage(
+        "نص يحتوي على رمز \u{E001} خاص"
+    ));
+    assert!(!ArabicCorruptionDetector::detect_pua_leakage(
+        "نص عربي سليم"
+    ));
 }
 
 #[test]
 fn test_persian_urdu_kurdish_glyph_names() {
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("peh").unwrap(), "پ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("tcheh").unwrap(), "چ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("jeh").unwrap(), "ژ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("gaf").unwrap(), "گ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("tteh").unwrap(), "ٹ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("lam_kurdish").unwrap(), "ڵ");
-    assert_eq!(AdobeArabicGlyphMap::glyph_name_to_unicode("oe_kurdish").unwrap(), "ۆ");
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("peh").unwrap(),
+        "پ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("tcheh").unwrap(),
+        "چ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("jeh").unwrap(),
+        "ژ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("gaf").unwrap(),
+        "گ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("tteh").unwrap(),
+        "ٹ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("lam_kurdish").unwrap(),
+        "ڵ"
+    );
+    assert_eq!(
+        AdobeArabicGlyphMap::glyph_name_to_unicode("oe_kurdish").unwrap(),
+        "ۆ"
+    );
 }

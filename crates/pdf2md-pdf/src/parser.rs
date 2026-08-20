@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use pdf2md_ast::geometry::{BoundingBox, Color, Matrix, Point, Rect};
 use crate::elements::{GraphicsState, PathSegment, RawPage, TextSpan};
 use crate::font::FontMap;
+use pdf2md_ast::geometry::{BoundingBox, Color, Matrix, Point, Rect};
+use std::collections::HashMap;
 
 pub struct ContentStreamParser<'a> {
     fonts: &'a HashMap<String, FontMap>,
@@ -142,7 +142,8 @@ impl<'a> ContentStreamParser<'a> {
             "Tj" | "'" | "\"" => {
                 if let Some(str_arg) = args.last() {
                     if op == "'" || op == "\"" {
-                        let translation = Matrix::new(1.0, 0.0, 0.0, 1.0, 0.0, -self.current_state.leading);
+                        let translation =
+                            Matrix::new(1.0, 0.0, 0.0, 1.0, 0.0, -self.current_state.leading);
                         self.current_state.text_line_matrix =
                             self.current_state.text_line_matrix.multiply(&translation);
                         self.current_state.text_matrix = self.current_state.text_line_matrix;
@@ -164,14 +165,25 @@ impl<'a> ContentStreamParser<'a> {
                         args[3].parse::<f32>(),
                     ) {
                         let p1 = self.current_state.ctm.transform_point(Point::new(x, y));
-                        let p2 = self.current_state.ctm.transform_point(Point::new(x + w, y + h));
+                        let p2 = self
+                            .current_state
+                            .ctm
+                            .transform_point(Point::new(x + w, y + h));
                         // Convert PDF bottom-left origin to top-left origin
                         let top_y = (self.page_height - p1.y.max(p2.y)).max(0.0);
-                        let rect = Rect::new(p1.x.min(p2.x), top_y, (p2.x - p1.x).abs(), (p2.y - p1.y).abs());
-                        
+                        let rect = Rect::new(
+                            p1.x.min(p2.x),
+                            top_y,
+                            (p2.x - p1.x).abs(),
+                            (p2.y - p1.y).abs(),
+                        );
+
                         page.paths.push(PathSegment {
                             rect: Some(rect),
-                            points: vec![Point::new(rect.x, rect.y), Point::new(rect.x + rect.width, rect.y + rect.height)],
+                            points: vec![
+                                Point::new(rect.x, rect.y),
+                                Point::new(rect.x + rect.width, rect.y + rect.height),
+                            ],
                             is_stroke: true,
                             is_fill: false,
                             stroke_width: self.current_state.line_width,
@@ -200,15 +212,25 @@ impl<'a> ContentStreamParser<'a> {
             }
             "S" | "s" | "f" | "F" | "f*" | "B" | "B*" | "b" | "b*" => {
                 if self.current_path.len() >= 2 {
-                    let is_stroke = op.contains('S') || op.contains('s') || op.contains('B') || op.contains('b');
-                    let is_fill = op.contains('f') || op.contains('F') || op.contains('B') || op.contains('b');
+                    let is_stroke = op.contains('S')
+                        || op.contains('s')
+                        || op.contains('B')
+                        || op.contains('b');
+                    let is_fill = op.contains('f')
+                        || op.contains('F')
+                        || op.contains('B')
+                        || op.contains('b');
                     page.paths.push(PathSegment {
                         rect: None,
                         points: self.current_path.clone(),
                         is_stroke,
                         is_fill,
                         stroke_width: self.current_state.line_width,
-                        color: if is_fill { self.current_state.fill_color } else { self.current_state.stroke_color },
+                        color: if is_fill {
+                            self.current_state.fill_color
+                        } else {
+                            self.current_state.stroke_color
+                        },
                     });
                 }
                 self.current_path.clear();
@@ -220,7 +242,11 @@ impl<'a> ContentStreamParser<'a> {
                         self.current_state.fill_color = Color::rgb(gray, gray, gray);
                     }
                 } else if op == "rg" && args.len() >= 3 {
-                    if let (Ok(r), Ok(g), Ok(b)) = (args[0].parse::<f32>(), args[1].parse::<f32>(), args[2].parse::<f32>()) {
+                    if let (Ok(r), Ok(g), Ok(b)) = (
+                        args[0].parse::<f32>(),
+                        args[1].parse::<f32>(),
+                        args[2].parse::<f32>(),
+                    ) {
                         self.current_state.fill_color = Color::rgb(r, g, b);
                     }
                 }
@@ -232,7 +258,11 @@ impl<'a> ContentStreamParser<'a> {
                         self.current_state.stroke_color = Color::rgb(gray, gray, gray);
                     }
                 } else if op == "RG" && args.len() >= 3 {
-                    if let (Ok(r), Ok(g), Ok(b)) = (args[0].parse::<f32>(), args[1].parse::<f32>(), args[2].parse::<f32>()) {
+                    if let (Ok(r), Ok(g), Ok(b)) = (
+                        args[0].parse::<f32>(),
+                        args[1].parse::<f32>(),
+                        args[2].parse::<f32>(),
+                    ) {
                         self.current_state.stroke_color = Color::rgb(r, g, b);
                     }
                 }
@@ -256,7 +286,10 @@ impl<'a> ContentStreamParser<'a> {
         }
 
         let font_size = self.current_state.font_size;
-        let eff_matrix = self.current_state.text_matrix.multiply(&self.current_state.ctm);
+        let eff_matrix = self
+            .current_state
+            .text_matrix
+            .multiply(&self.current_state.ctm);
         let start_point = eff_matrix.transform_point(Point::ZERO);
 
         let char_count = decoded_text.chars().count().max(1);
@@ -277,7 +310,11 @@ impl<'a> ContentStreamParser<'a> {
             pdf2md_ast::WritingDirection::LeftToRight
         };
 
-        let baseline = pdf2md_ast::Baseline::new(top_y + approx_height, start_point.x, start_point.x + approx_width);
+        let baseline = pdf2md_ast::Baseline::new(
+            top_y + approx_height,
+            start_point.x,
+            start_point.x + approx_width,
+        );
 
         page.text_spans.push(TextSpan {
             text: decoded_text,
@@ -297,7 +334,14 @@ impl<'a> ContentStreamParser<'a> {
         });
 
         // Advance text matrix
-        let advance = Matrix::new(1.0, 0.0, 0.0, 1.0, (char_count as f32) * font_size * 0.55, 0.0);
+        let advance = Matrix::new(
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            (char_count as f32) * font_size * 0.55,
+            0.0,
+        );
         self.current_state.text_matrix = self.current_state.text_matrix.multiply(&advance);
     }
 
@@ -309,7 +353,8 @@ impl<'a> ContentStreamParser<'a> {
                 TjItem::Adjustment(adj) => {
                     let dx = -adj / 1000.0 * self.current_state.font_size;
                     let advance = Matrix::new(1.0, 0.0, 0.0, 1.0, dx, 0.0);
-                    self.current_state.text_matrix = self.current_state.text_matrix.multiply(&advance);
+                    self.current_state.text_matrix =
+                        self.current_state.text_matrix.multiply(&advance);
                 }
             }
         }
@@ -353,7 +398,7 @@ fn parse_tj_elements(raw: &str) -> Vec<TjItem> {
         } else if ch == '<' {
             chars.next();
             let mut hex = String::new();
-            while let Some(c) = chars.next() {
+            for c in chars.by_ref() {
                 if c == '>' {
                     break;
                 }
@@ -426,9 +471,9 @@ fn is_operator(token: &str) -> bool {
     )
 }
 
-fn tokenize_pdf_stream(input: &str) -> Vec<String> {
+fn tokenize_pdf_stream(stream: &str) -> Vec<String> {
     let mut tokens = Vec::new();
-    let mut chars = input.chars().peekable();
+    let mut chars = stream.chars().peekable();
 
     while let Some(&ch) = chars.peek() {
         if ch.is_whitespace() {
@@ -438,12 +483,13 @@ fn tokenize_pdf_stream(input: &str) -> Vec<String> {
             let mut s = String::new();
             s.push('(');
             let mut depth = 1;
-            while let Some(c) = chars.next() {
+            let mut escaped = false;
+            for c in chars.by_ref() {
                 s.push(c);
-                if c == '\\' {
-                    if let Some(esc) = chars.next() {
-                        s.push(esc);
-                    }
+                if escaped {
+                    escaped = false;
+                } else if c == '\\' {
+                    escaped = true;
                 } else if c == '(' {
                     depth += 1;
                 } else if c == ')' {
@@ -458,7 +504,7 @@ fn tokenize_pdf_stream(input: &str) -> Vec<String> {
             chars.next();
             let mut s = String::new();
             s.push('[');
-            while let Some(c) = chars.next() {
+            for c in chars.by_ref() {
                 s.push(c);
                 if c == ']' {
                     break;
@@ -469,7 +515,7 @@ fn tokenize_pdf_stream(input: &str) -> Vec<String> {
             chars.next();
             let mut s = String::new();
             s.push('<');
-            while let Some(c) = chars.next() {
+            for c in chars.by_ref() {
                 s.push(c);
                 if c == '>' {
                     break;
@@ -528,7 +574,7 @@ fn decode_pdf_string(encoded: &str, font: Option<&FontMap>) -> String {
         let hex = &encoded[1..encoded.len() - 1];
         let mut out = String::new();
         if let Some(f) = font {
-            if hex.len() % 4 == 0 {
+            if hex.len().is_multiple_of(4) {
                 for chunk in hex.as_bytes().chunks(4) {
                     if let Ok(c_str) = std::str::from_utf8(chunk) {
                         if let Ok(code) = u32::from_str_radix(c_str, 16) {

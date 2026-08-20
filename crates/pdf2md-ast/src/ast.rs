@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use crate::geometry::BoundingBox;
 use crate::diagnostics::ConversionDiagnostics;
+use crate::geometry::BoundingBox;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Document {

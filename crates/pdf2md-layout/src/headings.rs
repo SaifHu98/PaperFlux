@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use pdf2md_pdf::elements::TextSpan;
+use std::collections::HashMap;
 
 pub struct HeadingClassifier {
     pub base_body_font_size: f32,
@@ -49,7 +49,11 @@ impl HeadingClassifier {
             return None;
         }
 
-        let full_text = spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
+        let full_text = spans
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         let trimmed = full_text.trim();
 
         if trimmed.is_empty() || trimmed.len() > 160 {
@@ -58,7 +62,10 @@ impl HeadingClassifier {
 
         let max_font_size = spans.iter().map(|s| s.font_size).fold(0.0f32, f32::max);
         let is_bold = spans.iter().any(|s| s.is_bold);
-        let is_all_caps = trimmed.len() > 3 && trimmed.chars().all(|c| !c.is_alphabetic() || c.is_uppercase());
+        let is_all_caps = trimmed.len() > 3
+            && trimmed
+                .chars()
+                .all(|c| !c.is_alphabetic() || c.is_uppercase());
         let has_numbered_clause = is_clause_number(trimmed);
 
         // 1. Check relative to discovered font size levels

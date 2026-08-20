@@ -65,7 +65,10 @@ fn test_corpus_cjk_languages() {
     let line1 = "このドキュメントは、";
     let line2 = "システムアーキテクチャの概要です。";
     let joined = join_lines_cjk_aware(line1, line2);
-    assert_eq!(joined, "このドキュメントは、システムアーキテクチャの概要です。");
+    assert_eq!(
+        joined,
+        "このドキュメントは、システムアーキテクチャの概要です。"
+    );
 
     // Korean (Hangul)
     let korean = "이 문서는 고성능 문서 변환 엔진의 아키텍처를 설명합니다.";
@@ -96,7 +99,10 @@ fn test_corpus_cyrillic_and_indic() {
 fn test_corpus_mathematical_notation() {
     let math = "∀ x ∈ ℝ, ∫ f(x) dx = ∑_{i=1}^n a_i x^i + C where ∇ · E = ρ / ε_0";
     let script = ScriptDetector::detect_script(math);
-    assert!(matches!(script, Script::Math | Script::Latin | Script::Mixed));
+    assert!(matches!(
+        script,
+        Script::Math | Script::Latin | Script::Mixed
+    ));
 }
 
 #[test]
@@ -114,7 +120,8 @@ fn test_corpus_mixed_script_page() {
 #[test]
 fn test_corpus_corrupted_font_quality_assessment() {
     // Text with missing glyphs and unmapped PUA fonts
-    let corrupted = "Th\u{FFFD}s is a c\u{FFFD}rr\u{FFFD}pted d\u{E001}\u{E002}\u{E003}cument str\u{FFFD}am.";
+    let corrupted =
+        "Th\u{FFFD}s is a c\u{FFFD}rr\u{FFFD}pted d\u{E001}\u{E002}\u{E003}cument str\u{FFFD}am.";
     let quality = TextQualityAssessor::assess(corrupted);
 
     assert!(quality.is_corrupted, "Should flag corrupted font stream");

@@ -3,6 +3,7 @@ use pdf2md_ast::{CaptionTarget, Node};
 use pdf2md_layout::LayoutEngine;
 use pdf2md_pdf::elements::{ImageObject, RawPage, TextSpan};
 
+#[allow(clippy::too_many_arguments)]
 fn create_span(
     text: &str,
     x: f32,
@@ -90,7 +91,15 @@ fn test_golden_academic_two_column_paper() {
 
     // Left Column (x: 72..280)
     page.text_spans.push(create_span(
-        "1. Introduction", 72.0, 180.0, 150.0, 16.0, 14.0, true, false, false,
+        "1. Introduction",
+        72.0,
+        180.0,
+        150.0,
+        16.0,
+        14.0,
+        true,
+        false,
+        false,
     ));
     page.text_spans.push(create_span(
         "Document layout analysis is a central problem in computer vision and information retrieval.",
@@ -117,7 +126,15 @@ fn test_golden_academic_two_column_paper() {
 
     // Right Column (x: 330..540)
     page.text_spans.push(create_span(
-        "2. Related Work", 330.0, 180.0, 150.0, 16.0, 14.0, true, false, false,
+        "2. Related Work",
+        330.0,
+        180.0,
+        150.0,
+        16.0,
+        14.0,
+        true,
+        false,
+        false,
     ));
     page.text_spans.push(create_span(
         "Recent work leverages graph neural networks to reconstruct reading order across multi-column pages.",
@@ -252,9 +269,9 @@ fn test_golden_book_chapter_with_quotes() {
     let section = layout_engine.analyze_page(&page);
 
     let has_running_header = section.elements.iter().any(|n| match n {
-        Node::Paragraph { inlines, .. } => inlines
-            .iter()
-            .any(|i| i.plain_text().contains("CHAPTER 4")),
+        Node::Paragraph { inlines, .. } => {
+            inlines.iter().any(|i| i.plain_text().contains("CHAPTER 4"))
+        }
         _ => false,
     });
     assert!(!has_running_header, "Running header must be filtered out");
@@ -320,7 +337,15 @@ fn test_golden_technical_manual_code_blocks() {
         true,
     ));
     page.text_spans.push(create_span(
-        "    .build();", 72.0, 160.0, 100.0, 12.0, 10.0, false, false, true,
+        "    .build();",
+        72.0,
+        160.0,
+        100.0,
+        12.0,
+        10.0,
+        false,
+        false,
+        true,
     ));
 
     // Nested numbered list
@@ -429,8 +454,14 @@ fn test_golden_arabic_rtl_document() {
         .iter()
         .any(|n| matches!(n, Node::List { .. }));
 
-    assert!(has_arabic_heading, "Arabic title should be recognized as Heading");
-    assert!(has_arabic_list, "Arabic bullet points should be recognized as List");
+    assert!(
+        has_arabic_heading,
+        "Arabic title should be recognized as Heading"
+    );
+    assert!(
+        has_arabic_list,
+        "Arabic bullet points should be recognized as List"
+    );
 }
 
 #[test]
@@ -470,7 +501,10 @@ fn test_golden_hebrew_rtl_document() {
         .elements
         .iter()
         .any(|n| matches!(n, Node::Heading { .. }));
-    assert!(has_hebrew_heading, "Hebrew title should be recognized as Heading");
+    assert!(
+        has_hebrew_heading,
+        "Hebrew title should be recognized as Heading"
+    );
 }
 
 #[test]
@@ -523,7 +557,9 @@ fn test_golden_cjk_document() {
 
     if let Some(Node::Paragraph { inlines, .. }) = para {
         let text = inlines[0].plain_text();
-        assert!(text.contains("本システムは、PDFドキュメントを解析し、構造化されたMarkdownを高速に生成します。"));
+        assert!(text.contains(
+            "本システムは、PDFドキュメントを解析し、構造化されたMarkdownを高速に生成します。"
+        ));
     }
 }
 
@@ -585,13 +621,18 @@ fn test_golden_legal_contract_clauses() {
         .elements
         .iter()
         .any(|n| matches!(n, Node::Heading { level: 1, .. }));
-    let has_clauses = section
-        .elements
-        .iter()
-        .any(|n| matches!(n, Node::List { ordered: true, .. } | Node::Heading { level: 2 | 3 | 4, .. }));
+    let has_clauses = section.elements.iter().any(|n| {
+        matches!(
+            n,
+            Node::List { ordered: true, .. } | Node::Heading { level: 2..=4, .. }
+        )
+    });
 
     assert!(has_main_title, "Legal title should be H1");
-    assert!(has_clauses, "Legal clauses should be recognized structurally");
+    assert!(
+        has_clauses,
+        "Legal clauses should be recognized structurally"
+    );
 }
 
 #[test]
@@ -610,5 +651,8 @@ fn test_golden_scanned_pdf_capability_assessment() {
     page.assess_capabilities();
 
     assert!(!page.has_usable_text, "Should have no digital text");
-    assert!(page.is_scanned, "Should be classified as scanned/image-only page");
+    assert!(
+        page.is_scanned,
+        "Should be classified as scanned/image-only page"
+    );
 }

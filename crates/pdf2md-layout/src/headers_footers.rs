@@ -44,7 +44,7 @@ fn is_page_number_pattern(text: &str) -> bool {
         return true;
     }
     if text.contains(" of ") || text.contains('/') {
-        let parts: Vec<&str> = text.split(|c| c == ' ' || c == '/').filter(|s| !s.is_empty()).collect();
+        let parts: Vec<&str> = text.split([' ', '/']).filter(|s| !s.is_empty()).collect();
         if parts.len() <= 3 && parts.iter().all(|p| p.parse::<u32>().is_ok() || *p == "of") {
             return true;
         }

@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-use std::sync::Arc;
+use crate::profile::ExecutionProfile;
 use pdf2md_markdown::{MarkdownDialect, PageBreakStyle, RenderOptions};
 use pdf2md_ocr::{OCRProvider, OcrMode};
 use pdf2md_pdf::security::SecurityLimits;
-use crate::profile::ExecutionProfile;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Config {
@@ -48,6 +48,12 @@ impl Default for Config {
 
 pub struct ConfigBuilder {
     config: Config,
+}
+
+impl Default for ConfigBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ConfigBuilder {

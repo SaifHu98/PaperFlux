@@ -21,7 +21,11 @@ fn test_arabic_clean_digital_page_skips_ocr() {
     let spans = vec![
         make_text_span("المملكة العربية السعودية", 200.0, 700.0),
         make_text_span("تقرير الأداء المالي والتشغيلي لعام ٢٠٢٦", 200.0, 680.0),
-        make_text_span("حققت الشركة نمواً قياسياً بنسبة ٢٨٪ في الأرباح الصافية.", 200.0, 660.0),
+        make_text_span(
+            "حققت الشركة نمواً قياسياً بنسبة ٢٨٪ في الأرباح الصافية.",
+            200.0,
+            660.0,
+        ),
     ];
 
     let page = RawPage {
@@ -81,7 +85,11 @@ fn test_arabic_scanned_image_page_triggers_ocr() {
 #[test]
 fn test_arabic_corrupted_font_stream_triggers_ocr() {
     let corrupted_spans = vec![
-        make_text_span("\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD} \u{E001}\u{E002}\u{E003}", 200.0, 700.0),
+        make_text_span(
+            "\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD} \u{E001}\u{E002}\u{E003}",
+            200.0,
+            700.0,
+        ),
         make_text_span("\u{E010}\u{E011}\u{E012} \u{FFFD}\u{FFFD}", 200.0, 680.0),
     ];
 
@@ -109,13 +117,25 @@ fn test_arabic_corrupted_font_stream_triggers_ocr() {
 
 #[test]
 fn test_arabic_dialect_hints_parsing() {
-    assert_eq!(ArabicDialectHint::parse("ar-SA"), ArabicDialectHint::SaudiArabia);
+    assert_eq!(
+        ArabicDialectHint::parse("ar-SA"),
+        ArabicDialectHint::SaudiArabia
+    );
     assert_eq!(ArabicDialectHint::parse("ar-EG"), ArabicDialectHint::Egypt);
     assert_eq!(ArabicDialectHint::parse("ar-IQ"), ArabicDialectHint::Iraq);
     assert_eq!(ArabicDialectHint::parse("ar-AE"), ArabicDialectHint::UAE);
-    assert_eq!(ArabicDialectHint::parse("ar-MA"), ArabicDialectHint::Morocco);
-    assert_eq!(ArabicDialectHint::parse("ar-DZ"), ArabicDialectHint::Algeria);
-    assert_eq!(ArabicDialectHint::parse("ar"), ArabicDialectHint::GeneralArabic);
+    assert_eq!(
+        ArabicDialectHint::parse("ar-MA"),
+        ArabicDialectHint::Morocco
+    );
+    assert_eq!(
+        ArabicDialectHint::parse("ar-DZ"),
+        ArabicDialectHint::Algeria
+    );
+    assert_eq!(
+        ArabicDialectHint::parse("ar"),
+        ArabicDialectHint::GeneralArabic
+    );
 }
 
 #[test]

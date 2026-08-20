@@ -1,6 +1,5 @@
 use pdf2md_text::arabic::context::{
-    ArabicNormalizationMode, ArabicProcessingContext, ArabicShapingMode, DiacriticMode,
-    NumeralSystem, PunctuationMode,
+    ArabicProcessingContext, DiacriticMode, NumeralSystem, PunctuationMode,
 };
 use pdf2md_text::arabic::numerals::ArabicNumerals;
 use pdf2md_text::arabic::pipeline::ArabicTextPipeline;
@@ -118,7 +117,8 @@ fn test_arabic_punctuation_mirroring() {
 
 #[test]
 fn test_mixed_arabic_english_inline_coexistence() {
-    let mixed = "تم تطوير مكتبة PaperFlux باستخدام لغة Rust لدعم بروتوكول OAuth 2.0 والتحويل إلى Markdown.";
+    let mixed =
+        "تم تطوير مكتبة PaperFlux باستخدام لغة Rust لدعم بروتوكول OAuth 2.0 والتحويل إلى Markdown.";
     let ctx = ArabicProcessingContext::default();
 
     let (processed, _) = ArabicTextPipeline::process(mixed, &ctx);

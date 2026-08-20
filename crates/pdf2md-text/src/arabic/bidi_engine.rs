@@ -1,5 +1,5 @@
-use pdf2md_ast::geometry::WritingDirection;
 use crate::bidi::is_rtl_char;
+use pdf2md_ast::geometry::WritingDirection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BidiTokenKind {
@@ -52,9 +52,17 @@ impl BidiTokenizer {
 
             // 2. URLs (http://, https://, www.)
             let remaining: String = chars[i..].iter().collect();
-            if remaining.starts_with("http://") || remaining.starts_with("https://") || remaining.starts_with("www.") {
+            if remaining.starts_with("http://")
+                || remaining.starts_with("https://")
+                || remaining.starts_with("www.")
+            {
                 let start = i;
-                while i < chars.len() && !chars[i].is_whitespace() && chars[i] != ')' && chars[i] != '>' && chars[i] != ']' {
+                while i < chars.len()
+                    && !chars[i].is_whitespace()
+                    && chars[i] != ')'
+                    && chars[i] != '>'
+                    && chars[i] != ']'
+                {
                     i += 1;
                 }
                 let text: String = chars[start..i].iter().collect();
@@ -71,7 +79,11 @@ impl BidiTokenizer {
                 if let Some(close_idx) = chars[i..].iter().position(|&ch| ch == ']') {
                     let end = i + close_idx + 1;
                     let candidate: String = chars[i..end].iter().collect();
-                    if candidate.len() <= 10 && candidate[1..candidate.len()-1].chars().all(|ch| ch.is_alphanumeric() || ch == ',' || ch == '-') {
+                    if candidate.len() <= 10
+                        && candidate[1..candidate.len() - 1]
+                            .chars()
+                            .all(|ch| ch.is_alphanumeric() || ch == ',' || ch == '-')
+                    {
                         tokens.push(BidiToken {
                             kind: BidiTokenKind::CitationOrReference,
                             text: candidate,
@@ -85,7 +97,7 @@ impl BidiTokenizer {
 
             // 4. Code fragments enclosed in backticks (`foo()`)
             if c == '`' {
-                if let Some(close_idx) = chars[i+1..].iter().position(|&ch| ch == '`') {
+                if let Some(close_idx) = chars[i + 1..].iter().position(|&ch| ch == '`') {
                     let end = i + 1 + close_idx + 1;
                     let text: String = chars[i..end].iter().collect();
                     tokens.push(BidiToken {
@@ -116,7 +128,10 @@ impl BidiTokenizer {
             // 6. Numeric (Western, Eastern Arabic-Indic, Perso-Arabic)
             if c.is_ascii_digit() || matches!(c, '٠'..='٩' | '۰'..='۹') {
                 let start = i;
-                while i < chars.len() && (chars[i].is_ascii_digit() || matches!(chars[i], '٠'..='٩' | '۰'..='۹' | '.' | ',' | '٫' | '٬' | '%' | '٪' | '-')) {
+                while i < chars.len()
+                    && (chars[i].is_ascii_digit()
+                        || matches!(chars[i], '٠'..='٩' | '۰'..='۹' | '.' | ',' | '٫' | '٬' | '%' | '٪' | '-'))
+                {
                     i += 1;
                 }
                 let text: String = chars[start..i].iter().collect();
@@ -131,7 +146,9 @@ impl BidiTokenizer {
             // 7. Latin Text (Words, Acronyms, Identifiers)
             if c.is_ascii_alphabetic() {
                 let start = i;
-                while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '_' || chars[i] == '-') {
+                while i < chars.len()
+                    && (chars[i].is_ascii_alphanumeric() || chars[i] == '_' || chars[i] == '-')
+                {
                     i += 1;
                 }
                 let text: String = chars[start..i].iter().collect();
@@ -139,7 +156,9 @@ impl BidiTokenizer {
                 // Check if it's an email (e.g. contains @)
                 if i < chars.len() && chars[i] == '@' {
                     i += 1;
-                    while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '.' || chars[i] == '-') {
+                    while i < chars.len()
+                        && (chars[i].is_ascii_alphanumeric() || chars[i] == '.' || chars[i] == '-')
+                    {
                         i += 1;
                     }
                     let full_email: String = chars[start..i].iter().collect();
@@ -152,7 +171,11 @@ impl BidiTokenizer {
                 }
 
                 // Check if it's a filename (e.g. app.php, index.ts)
-                if i < chars.len() && chars[i] == '.' && i + 1 < chars.len() && chars[i+1].is_ascii_alphabetic() {
+                if i < chars.len()
+                    && chars[i] == '.'
+                    && i + 1 < chars.len()
+                    && chars[i + 1].is_ascii_alphabetic()
+                {
                     i += 1;
                     while i < chars.len() && chars[i].is_ascii_alphabetic() {
                         i += 1;
@@ -211,7 +234,9 @@ impl ArabicBidiEngine {
         }
 
         // If first strong character is RTL or more than 30% of strong text is RTL -> RTL paragraph
-        if rtl_count > 0 && (rtl_count >= ltr_count || first_strong == Some(WritingDirection::RightToLeft)) {
+        if rtl_count > 0
+            && (rtl_count >= ltr_count || first_strong == Some(WritingDirection::RightToLeft))
+        {
             WritingDirection::RightToLeft
         } else {
             WritingDirection::LeftToRight
@@ -231,7 +256,9 @@ impl ArabicBidiEngine {
             match token.kind {
                 // Arabic text runs
                 BidiTokenKind::ArabicText => {
-                    out.push_str(&crate::bidi::normalize_arabic_presentation_forms(&token.text));
+                    out.push_str(&crate::bidi::normalize_arabic_presentation_forms(
+                        &token.text,
+                    ));
                 }
                 // Protected LTR isolates: URLs, emails, code, filenames, Latin identifiers, numbers
                 BidiTokenKind::Url

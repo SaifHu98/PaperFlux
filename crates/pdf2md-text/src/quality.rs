@@ -34,7 +34,8 @@ impl TextQualityAssessor {
         for c in text.chars() {
             if c == '\u{FFFD}' {
                 replacement_char_count += 1;
-            } else if matches!(c as u32, 0xE000..=0xF8FF | 0xF0000..=0xFFFFD | 0x100000..=0x10FFFD) {
+            } else if matches!(c as u32, 0xE000..=0xF8FF | 0xF0000..=0xFFFFD | 0x100000..=0x10FFFD)
+            {
                 pua_char_count += 1;
             } else if c.is_control() && c != '\n' && c != '\r' && c != '\t' {
                 control_chars += 1;
@@ -48,26 +49,37 @@ impl TextQualityAssessor {
         let mut is_corrupted = false;
 
         if replacement_char_count > 0 {
-            reasons.push(format!("Found {} Unicode replacement characters (\\uFFFD)", replacement_char_count));
+            reasons.push(format!(
+                "Found {} Unicode replacement characters (\\uFFFD)",
+                replacement_char_count
+            ));
             if (replacement_char_count as f32) / (total_chars as f32) > 0.05 {
                 is_corrupted = true;
             }
         }
 
         if pua_char_count > 0 {
-            reasons.push(format!("Found {} Private Use Area characters (unmapped font glyphs)", pua_char_count));
+            reasons.push(format!(
+                "Found {} Private Use Area characters (unmapped font glyphs)",
+                pua_char_count
+            ));
             if (pua_char_count as f32) / (total_chars as f32) > 0.10 {
                 is_corrupted = true;
             }
         }
 
         if printable_ratio < 0.70 {
-            reasons.push(format!("Low printable character ratio ({:.1}%)", printable_ratio * 100.0));
+            reasons.push(format!(
+                "Low printable character ratio ({:.1}%)",
+                printable_ratio * 100.0
+            ));
             is_corrupted = true;
         }
 
-        let penalty = (replacement_char_count as f32 * 0.05) + (pua_char_count as f32 * 0.02) + (control_chars as f32 * 0.05);
-        let quality_score = (printable_ratio - penalty).max(0.0).min(1.0);
+        let penalty = (replacement_char_count as f32 * 0.05)
+            + (pua_char_count as f32 * 0.02)
+            + (control_chars as f32 * 0.05);
+        let quality_score = (printable_ratio - penalty).clamp(0.0, 1.0);
 
         TextQualityScore {
             quality_score,

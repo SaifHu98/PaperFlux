@@ -1,16 +1,11 @@
 use pdf2md_pdf::elements::RawPage;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum OcrMode {
+    #[default]
     Auto,
     Always,
     Never,
-}
-
-impl Default for OcrMode {
-    fn default() -> Self {
-        Self::Auto
-    }
 }
 
 pub struct OcrDecisionEngine {
@@ -35,7 +30,8 @@ impl OcrDecisionEngine {
             OcrMode::Auto => {
                 let total_chars: usize = page.text_spans.iter().map(|s| s.text.len()).sum();
                 // If page has virtually no usable digital text but has images or is scanned
-                total_chars < self.min_text_chars_threshold && (page.is_scanned || !page.images.is_empty())
+                total_chars < self.min_text_chars_threshold
+                    && (page.is_scanned || !page.images.is_empty())
             }
         }
     }

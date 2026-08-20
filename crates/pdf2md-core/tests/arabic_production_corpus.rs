@@ -1,26 +1,48 @@
-use std::time::Instant;
 use pdf2md_core::arabic_benchmark::{ArabicBenchmarkRecord, ArabicQualityScore};
 use pdf2md_core::{Config, Converter};
+use std::time::Instant;
 
 fn create_arabic_genre_pdf(genre: &str) -> Vec<u8> {
     let content = match genre {
         "ArabicBooks" => "الفصل الأول: تاريخ الحضارات وتطور الفكر الإنساني عبر العصور.",
-        "ArabicAcademicPapers" => "أثر تقنيات معالجة اللغات الطبيعية في تحليل الوثائق العربية الضخمة.",
-        "IraqiUniversityDocuments" => "جمهورية العراق - وزارة التعليم العالي والبحث العلمي - جامعة بغداد - كلية العلوم.",
+        "ArabicAcademicPapers" => {
+            "أثر تقنيات معالجة اللغات الطبيعية في تحليل الوثائق العربية الضخمة."
+        }
+        "IraqiUniversityDocuments" => {
+            "جمهورية العراق - وزارة التعليم العالي والبحث العلمي - جامعة بغداد - كلية العلوم."
+        }
         "ArabicTheses" => "أطروحة دكتوراه: النماذج الرياضية في تشفير البيانات وتحليل الخوارزميات.",
-        "ArabicGovernmentDocuments" => "المملكة العربية السعودية - الجريدة الرسمية - مرسوم ملكي رقم (م/١٥) لعام ١٤٤٥ هـ.",
-        "ArabicLegalDocuments" => "عقد تقديم خدمات برمجية واستشارية - البند الأول: موضوع العقد ونطاق العمل.",
-        "ArabicNewspapers" => "صحيفة الأخبار اليومية: إطلاق محرك PaperFlux لمعالجة مستندات الـ PDF بذكاء.",
-        "ArabicMagazines" => "مجلة التقنية والابتكار: إضاءة خاصة حول مستقبل الذكاء الاصطناعي التوليدي.",
-        "ArabicInvoices" => "فاتورة ضريبية مبسطة - الرقم الضريبي: ٣٠٠١٢٣٤٥٦٧٠٠٠٠٣ - القيمة الإجمالية: ١٥٠ ر.س.",
+        "ArabicGovernmentDocuments" => {
+            "المملكة العربية السعودية - الجريدة الرسمية - مرسوم ملكي رقم (م/١٥) لعام ١٤٤٥ هـ."
+        }
+        "ArabicLegalDocuments" => {
+            "عقد تقديم خدمات برمجية واستشارية - البند الأول: موضوع العقد ونطاق العمل."
+        }
+        "ArabicNewspapers" => {
+            "صحيفة الأخبار اليومية: إطلاق محرك PaperFlux لمعالجة مستندات الـ PDF بذكاء."
+        }
+        "ArabicMagazines" => {
+            "مجلة التقنية والابتكار: إضاءة خاصة حول مستقبل الذكاء الاصطناعي التوليدي."
+        }
+        "ArabicInvoices" => {
+            "فاتورة ضريبية مبسطة - الرقم الضريبي: ٣٠٠١٢٣٤٥٦٧٠٠٠٠٣ - القيمة الإجمالية: ١٥٠ ر.س."
+        }
         "ArabicForms" => "استمارة تسجيل البيانات الشخصية والمهنية للمتقدمين على الوظائف الأكاديمية.",
-        "ArabicScientificPapers" => "دراسة تفاعلات المركبات الهيدروكربونية وفق معادلة أرهينيوس E = mc^2.",
+        "ArabicScientificPapers" => {
+            "دراسة تفاعلات المركبات الهيدروكربونية وفق معادلة أرهينيوس E = mc^2."
+        }
         "ArabicScannedPdfs" => "وثيقة ممسوحة ضوئياً تحتوي على تقرير أرشيفي رسمي.",
-        "ArabicEnglishMixedManuals" => "دليل استخدام PaperFlux Engine 2.0 المكتوب بلغة Rust و TypeScript.",
+        "ArabicEnglishMixedManuals" => {
+            "دليل استخدام PaperFlux Engine 2.0 المكتوب بلغة Rust و TypeScript."
+        }
         "ArabicTables" => "جدول الميزانية السنوية والمصروفات التشغيلية لعام ٢٠٢٦.",
-        "RtlMultiColumnLayouts" => "تخطيط متعدد الأعمدة يبدأ من اليمين إلى اليسار مع عنوان رئيسي ممتد.",
+        "RtlMultiColumnLayouts" => {
+            "تخطيط متعدد الأعمدة يبدأ من اليمين إلى اليسار مع عنوان رئيسي ممتد."
+        }
         "EmbeddedArabicFonts" => "نص مكتوب بخط أميري مدمج داخل ملف الـ PDF.",
-        "BrokenArabicFontPdfs" => "تقرير يحتوي على رموز معطوبة تم إصلاحها بواسطة خوارزمية فك التقديم.",
+        "BrokenArabicFontPdfs" => {
+            "تقرير يحتوي على رموز معطوبة تم إصلاحها بواسطة خوارزمية فك التقديم."
+        }
         "ImageOnlyArabicPdfs" => "مستند مصور بالكامل يتطلب معالجة التعرف الضوئي على الحروف.",
         _ => "مستند عربي عام قياسي.",
     };
@@ -93,8 +115,17 @@ fn test_arabic_production_corpus_18_genres() {
         let composite = quality.composite_score();
         let passed = quality.satisfies_release_gate();
 
-        assert!(passed, "Genre {} failed Arabic release gate with score {}", genre, composite);
-        assert!(composite >= 0.95, "Genre {} composite score {} is below 0.95", genre, composite);
+        assert!(
+            passed,
+            "Genre {} failed Arabic release gate with score {}",
+            genre, composite
+        );
+        assert!(
+            composite >= 0.95,
+            "Genre {} composite score {} is below 0.95",
+            genre,
+            composite
+        );
 
         records.push(ArabicBenchmarkRecord {
             genre: genre.to_string(),

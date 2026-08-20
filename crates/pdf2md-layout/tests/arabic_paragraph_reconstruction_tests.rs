@@ -100,13 +100,26 @@ fn test_statistical_line_gap_clustering() {
         ("السطر الأول من الفقرة الأولى.".to_string(), 100.0, 12.0),
         ("السطر الثاني التابع لنفس الفقرة.".to_string(), 114.0, 12.0),
         ("السطر الثالث المكمل للفقرة الأولى.".to_string(), 128.0, 12.0),
-        ("بداية الفقرة الثانية بعد مسافة عمودية واضحة.".to_string(), 158.0, 12.0),
-        ("تكملة السطر الأخير في الفقرة الثانية.".to_string(), 172.0, 12.0),
+        (
+            "بداية الفقرة الثانية بعد مسافة عمودية واضحة.".to_string(),
+            158.0,
+            12.0,
+        ),
+        (
+            "تكملة السطر الأخير في الفقرة الثانية.".to_string(),
+            172.0,
+            12.0,
+        ),
     ];
 
-    let paragraphs = ArabicParagraphReconstructor::reconstruct_paragraphs_with_geometry(&lines_with_geo, None);
+    let paragraphs =
+        ArabicParagraphReconstructor::reconstruct_paragraphs_with_geometry(&lines_with_geo, None);
 
-    assert_eq!(paragraphs.len(), 2, "Statistical clustering should detect 2 distinct paragraphs");
+    assert_eq!(
+        paragraphs.len(),
+        2,
+        "Statistical clustering should detect 2 distinct paragraphs"
+    );
     assert!(paragraphs[0].contains("السطر الأول"));
     assert!(paragraphs[0].contains("السطر الثالث"));
     assert!(paragraphs[1].contains("بداية الفقرة الثانية"));

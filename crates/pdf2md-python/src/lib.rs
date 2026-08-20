@@ -1,9 +1,11 @@
-use std::fs;
-use std::path::PathBuf;
-use pyo3::exceptions::{PyIOError, PyValueError};
-use pyo3::prelude::*;
+#![allow(clippy::useless_conversion, clippy::too_many_arguments)]
+
 use pdf2md_core::{Config, Converter, ExecutionProfile};
 use pdf2md_markdown::MarkdownDialect;
+use pyo3::exceptions::{PyIOError, PyValueError};
+use pyo3::prelude::*;
+use std::fs;
+use std::path::PathBuf;
 
 #[pyclass]
 #[derive(Clone)]
@@ -48,7 +50,10 @@ fn parse_dialect(dialect: &str) -> PyResult<MarkdownDialect> {
         "gfm" | "github" | "githubflavored" => Ok(MarkdownDialect::GitHubFlavored),
         "commonmark" => Ok(MarkdownDialect::CommonMark),
         "extended" | "scholarly" | "obsidian" | "hugo" => Ok(MarkdownDialect::Extended),
-        _ => Err(PyValueError::new_err(format!("Unknown markdown dialect: {}", dialect))),
+        _ => Err(PyValueError::new_err(format!(
+            "Unknown markdown dialect: {}",
+            dialect
+        ))),
     }
 }
 
@@ -57,7 +62,10 @@ fn parse_profile(profile: &str) -> PyResult<ExecutionProfile> {
         "fast" => Ok(ExecutionProfile::Fast),
         "balanced" => Ok(ExecutionProfile::Balanced),
         "low_memory" | "lowmemory" => Ok(ExecutionProfile::LowMemory),
-        _ => Err(PyValueError::new_err(format!("Unknown execution profile: {}", profile))),
+        _ => Err(PyValueError::new_err(format!(
+            "Unknown execution profile: {}",
+            profile
+        ))),
     }
 }
 
@@ -72,6 +80,7 @@ fn parse_profile(profile: &str) -> PyResult<ExecutionProfile> {
     paragraph_gap_threshold = None,
     ocr_dpi = None
 ))]
+#[allow(clippy::too_many_arguments, clippy::useless_conversion)]
 pub fn convert(
     pdf_path: &str,
     dialect: &str,
@@ -82,8 +91,9 @@ pub fn convert(
     paragraph_gap_threshold: Option<f32>,
     ocr_dpi: Option<u32>,
 ) -> PyResult<ConversionResult> {
-    let bytes = fs::read(pdf_path)
-        .map_err(|e| PyIOError::new_err(format!("Failed to read PDF file '{}': {}", pdf_path, e)))?;
+    let bytes = fs::read(pdf_path).map_err(|e| {
+        PyIOError::new_err(format!("Failed to read PDF file '{}': {}", pdf_path, e))
+    })?;
     convert_bytes(
         &bytes,
         dialect,
@@ -107,6 +117,7 @@ pub fn convert(
     paragraph_gap_threshold = None,
     ocr_dpi = None
 ))]
+#[allow(clippy::too_many_arguments, clippy::useless_conversion)]
 pub fn convert_bytes(
     data: &[u8],
     dialect: &str,

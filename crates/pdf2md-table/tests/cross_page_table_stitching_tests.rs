@@ -62,12 +62,8 @@ fn test_cross_page_arabic_table_stitching_with_repeated_header() {
         },
     ];
 
-    let stitched = ArabicTableExtractor::stitch_arabic_tables(
-        &p1_headers,
-        &p1_rows,
-        &p2_headers,
-        &p2_rows,
-    );
+    let stitched =
+        ArabicTableExtractor::stitch_arabic_tables(&p1_headers, &p1_rows, &p2_headers, &p2_rows);
 
     assert!(stitched.is_some(), "Arabic table stitching failed");
     let (headers, rows, diag) = stitched.unwrap();
@@ -84,7 +80,10 @@ fn test_cross_page_arabic_table_stitching_with_repeated_header() {
     assert_eq!(rows[3].cells[0].text_content(), "٤");
 
     // RTL direction verified
-    assert_eq!(diag.table_direction, pdf2md_ast::geometry::WritingDirection::RightToLeft);
+    assert_eq!(
+        diag.table_direction,
+        pdf2md_ast::geometry::WritingDirection::RightToLeft
+    );
 
     // Rendered GFM table
     let (gfm, _) = ArabicTableExtractor::format_arabic_table(&headers, &rows, Some("سجل الموظفين"));
@@ -102,11 +101,19 @@ fn test_cross_page_ltr_table_stitching_with_repeated_header() {
         }],
         rows: vec![
             TableRow {
-                cells: vec![make_cell("101"), make_cell("PaperFlux Pro"), make_cell("$499")],
+                cells: vec![
+                    make_cell("101"),
+                    make_cell("PaperFlux Pro"),
+                    make_cell("$499"),
+                ],
                 is_header: false,
             },
             TableRow {
-                cells: vec![make_cell("102"), make_cell("Cloud Worker"), make_cell("$199")],
+                cells: vec![
+                    make_cell("102"),
+                    make_cell("Cloud Worker"),
+                    make_cell("$199"),
+                ],
                 is_header: false,
             },
         ],
@@ -122,7 +129,11 @@ fn test_cross_page_ltr_table_stitching_with_repeated_header() {
             is_header: true,
         }],
         rows: vec![TableRow {
-            cells: vec![make_cell("103"), make_cell("Enterprise Addon"), make_cell("$999")],
+            cells: vec![
+                make_cell("103"),
+                make_cell("Enterprise Addon"),
+                make_cell("$999"),
+            ],
             is_header: false,
         }],
         caption: Some("Pricing Catalog (Continued)".to_string()),
@@ -137,7 +148,14 @@ fn test_cross_page_ltr_table_stitching_with_repeated_header() {
     let stitched_node = stitcher.stitch_two_tables(&t1, &t2);
     assert!(stitched_node.is_some());
 
-    if let Some(Node::Table { headers, rows, caption, confidence, .. }) = stitched_node {
+    if let Some(Node::Table {
+        headers,
+        rows,
+        caption,
+        confidence,
+        ..
+    }) = stitched_node
+    {
         assert_eq!(headers.len(), 1);
         assert_eq!(rows.len(), 3);
         assert_eq!(rows[2].cells[1].text_content(), "Enterprise Addon");
@@ -215,7 +233,12 @@ fn test_cross_page_rejection_on_incompatible_columns() {
 
     let t2 = Node::Table {
         headers: vec![TableRow {
-            cells: vec![make_cell("Col1"), make_cell("Col2"), make_cell("Col3"), make_cell("Col4")],
+            cells: vec![
+                make_cell("Col1"),
+                make_cell("Col2"),
+                make_cell("Col3"),
+                make_cell("Col4"),
+            ],
             is_header: true,
         }],
         rows: vec![],
@@ -236,7 +259,9 @@ fn test_cross_page_document_section_stitching() {
 
     let mut sec1 = Section::new(1);
     sec1.elements.push(Node::Paragraph {
-        inlines: vec![InlineNode::Text("Introduction paragraph on Page 1".to_string())],
+        inlines: vec![InlineNode::Text(
+            "Introduction paragraph on Page 1".to_string(),
+        )],
         confidence: 0.98,
         bbox: None,
     });
@@ -267,19 +292,19 @@ fn test_cross_page_document_section_stitching() {
             cells: vec![make_cell("Year"), make_cell("Revenue")],
             is_header: true,
         }],
-        rows: vec![
-            TableRow {
-                cells: vec![make_cell("2026"), make_cell("$4.8M")],
-                is_header: false,
-            },
-        ],
+        rows: vec![TableRow {
+            cells: vec![make_cell("2026"), make_cell("$4.8M")],
+            is_header: false,
+        }],
         caption: Some("Annual Financial Growth (Cont.)".to_string()),
         confidence: 0.98,
         has_borders: true,
         bbox: None,
     });
     sec2.elements.push(Node::Paragraph {
-        inlines: vec![InlineNode::Text("Conclusion paragraph on Page 2".to_string())],
+        inlines: vec![InlineNode::Text(
+            "Conclusion paragraph on Page 2".to_string(),
+        )],
         confidence: 0.98,
         bbox: None,
     });
@@ -302,5 +327,8 @@ fn test_cross_page_document_section_stitching() {
 
     // Section 2 should have its table removed and only contain conclusion paragraph
     assert_eq!(doc.sections[1].elements.len(), 1);
-    assert!(matches!(doc.sections[1].elements[0], Node::Paragraph { .. }));
+    assert!(matches!(
+        doc.sections[1].elements[0],
+        Node::Paragraph { .. }
+    ));
 }

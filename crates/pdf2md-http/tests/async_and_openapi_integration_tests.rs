@@ -1,11 +1,11 @@
+use pdf2md_core::{Config, Converter};
+use pdf2md_http::{ApiDoc, HttpServer, TaskManager, TaskStatus};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use utoipa::OpenApi;
-use pdf2md_core::{Config, Converter};
-use pdf2md_http::{ApiDoc, HttpServer, TaskManager, TaskStatus};
 
 fn generate_test_pdf() -> Vec<u8> {
     let text = "BT\n/F1 12 Tf\n72 700 Td\n(HTTP Async Integration Test) Tj\n0 -20 Td\n(Arabic: \\xd8\\xaa\\xd8\\xac\\xd8\\xb1\\xd8\\xa8\\xd8\\xa9) Tj\nET\n";
@@ -19,7 +19,9 @@ fn generate_test_pdf() -> Vec<u8> {
 #[test]
 fn test_openapi_schema_generation_and_components() {
     let openapi = ApiDoc::openapi();
-    let json_str = openapi.to_pretty_json().expect("OpenAPI should serialize to JSON");
+    let json_str = openapi
+        .to_pretty_json()
+        .expect("OpenAPI should serialize to JSON");
 
     assert!(json_str.contains("\"openapi\": \"3."));
     assert!(json_str.contains("/health"));
@@ -61,7 +63,8 @@ fn test_task_manager_async_lifecycle() {
 }
 
 fn send_http_request(port: u16, request: &str, body: &[u8]) -> (u16, String) {
-    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", port)).expect("Should connect to server");
+    let mut stream =
+        TcpStream::connect(format!("127.0.0.1:{}", port)).expect("Should connect to server");
     stream.write_all(request.as_bytes()).unwrap();
     if !body.is_empty() {
         stream.write_all(body).unwrap();
@@ -107,7 +110,10 @@ fn test_http_server_endpoints_and_async_workflow() {
     // 1. GET /health
     let (status, body) = send_http_request(
         port,
-        &format!("GET /health HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nConnection: close\r\n\r\n", port),
+        &format!(
+            "GET /health HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nConnection: close\r\n\r\n",
+            port
+        ),
         &[],
     );
     assert_eq!(status, 200);
@@ -150,7 +156,10 @@ fn test_http_server_endpoints_and_async_workflow() {
     for _ in 0..50 {
         let (st, status_body) = send_http_request(
             port,
-            &format!("GET /status/{} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nConnection: close\r\n\r\n", task_id, port),
+            &format!(
+                "GET /status/{} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nConnection: close\r\n\r\n",
+                task_id, port
+            ),
             &[],
         );
         if st == 200 && status_body.contains("\"status\":\"completed\"") {
@@ -160,5 +169,8 @@ fn test_http_server_endpoints_and_async_workflow() {
         }
         thread::sleep(Duration::from_millis(50));
     }
-    assert!(task_completed, "Async task should transition to completed state");
+    assert!(
+        task_completed,
+        "Async task should transition to completed state"
+    );
 }

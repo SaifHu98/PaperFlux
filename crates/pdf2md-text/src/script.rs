@@ -26,9 +26,11 @@ impl ScriptDetector {
             0x0041..=0x005A | 0x0061..=0x007A | 0x00C0..=0x024F | 0x1E00..=0x1EFF => Script::Latin,
 
             // Arabic (Arabic, Persian, Urdu, Kurdish, Arabic Supplement, Presentation Forms)
-            0x0600..=0x06FF | 0x0750..=0x077F | 0x08A0..=0x08FF | 0xFB50..=0xFDFF | 0xFE70..=0xFEFF => {
-                Script::Arabic
-            }
+            0x0600..=0x06FF
+            | 0x0750..=0x077F
+            | 0x08A0..=0x08FF
+            | 0xFB50..=0xFDFF
+            | 0xFE70..=0xFEFF => Script::Arabic,
 
             // Hebrew
             0x0590..=0x05FF | 0xFB1D..=0xFB4F => Script::Hebrew,
@@ -51,9 +53,11 @@ impl ScriptDetector {
             0x0370..=0x03FF | 0x1F00..=0x1FFF => Script::Greek,
 
             // Mathematical Symbols & Operators
-            0x2200..=0x22FF | 0x2A00..=0x2AFF | 0x2190..=0x21FF | 0x27C0..=0x27EF | 0x2980..=0x29FF => {
-                Script::Math
-            }
+            0x2200..=0x22FF
+            | 0x2A00..=0x2AFF
+            | 0x2190..=0x21FF
+            | 0x27C0..=0x27EF
+            | 0x2980..=0x29FF => Script::Math,
 
             _ => Script::Unknown,
         }

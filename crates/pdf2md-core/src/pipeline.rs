@@ -1,6 +1,8 @@
-use std::sync::Arc;
-use std::time::Instant;
-use rayon::prelude::*;
+use crate::buffer_pool::BufferPool;
+use crate::cache::PageCache;
+use crate::config::Config;
+use crate::error::{ConversionError, ConversionResult};
+use crate::scheduler::AdaptiveScheduler;
 use pdf2md_ast::{ConversionDiagnostics, Document, PageDiagnostics, Section};
 use pdf2md_images::{ImageExtractor, ImageExtractorConfig};
 use pdf2md_layout::LayoutEngine;
@@ -9,11 +11,9 @@ use pdf2md_ocr::OcrDecisionEngine;
 use pdf2md_pdf::elements::RawPage;
 use pdf2md_pdf::PdfDocument;
 use pdf2md_table::TableDetector;
-use crate::buffer_pool::BufferPool;
-use crate::cache::PageCache;
-use crate::config::Config;
-use crate::error::{ConversionError, ConversionResult};
-use crate::scheduler::AdaptiveScheduler;
+use rayon::prelude::*;
+use std::sync::Arc;
+use std::time::Instant;
 
 pub struct Pipeline {
     config: Config,
@@ -141,7 +141,8 @@ impl Pipeline {
             base_url: None,
         });
 
-        let layout_engine = LayoutEngine::default().with_paragraph_gap_threshold(self.config.paragraph_gap_threshold);
+        let layout_engine = LayoutEngine::default()
+            .with_paragraph_gap_threshold(self.config.paragraph_gap_threshold);
         let ocr_decision = OcrDecisionEngine {
             mode: self.config.ocr_mode,
             min_text_chars_threshold: 20,
@@ -157,33 +158,36 @@ impl Pipeline {
         let layout_start = Instant::now();
 
         // 3. Process pages (Parallelized with Rayon when plan.concurrency > 1)
-        let processed_pages: Vec<ProcessedPageOutput> = if plan.concurrency > 1 && pdf_doc.pages.len() > 1 {
-            pdf_doc.pages
-                .par_iter()
-                .map(|page| {
-                    process_single_page(
-                        page,
-                        &self.config,
-                        &layout_engine,
-                        &image_extractor,
-                        &ocr_decision,
-                    )
-                })
-                .collect()
-        } else {
-            pdf_doc.pages
-                .iter()
-                .map(|page| {
-                    process_single_page(
-                        page,
-                        &self.config,
-                        &layout_engine,
-                        &image_extractor,
-                        &ocr_decision,
-                    )
-                })
-                .collect()
-        };
+        let processed_pages: Vec<ProcessedPageOutput> =
+            if plan.concurrency > 1 && pdf_doc.pages.len() > 1 {
+                pdf_doc
+                    .pages
+                    .par_iter()
+                    .map(|page| {
+                        process_single_page(
+                            page,
+                            &self.config,
+                            &layout_engine,
+                            &image_extractor,
+                            &ocr_decision,
+                        )
+                    })
+                    .collect()
+            } else {
+                pdf_doc
+                    .pages
+                    .iter()
+                    .map(|page| {
+                        process_single_page(
+                            page,
+                            &self.config,
+                            &layout_engine,
+                            &image_extractor,
+                            &ocr_decision,
+                        )
+                    })
+                    .collect()
+            };
 
         let mut page_diagnostics = Vec::with_capacity(total_pages);
         let mut total_tables = 0;

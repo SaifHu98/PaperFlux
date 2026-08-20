@@ -1,5 +1,5 @@
-use std::time::Instant;
 use pdf2md_core::{Config, Converter, ExecutionProfile};
+use std::time::Instant;
 
 fn generate_benchmark_pdf(page_count: usize) -> Vec<u8> {
     let mut pages_objects = String::new();
@@ -64,10 +64,15 @@ fn test_benchmark_throughput_and_profiles() {
     println!("  Total Time:       {:.2?}", fast_duration);
     println!("  Throughput:       {:.1} pages/sec", fast_pages_per_sec);
     println!("  Bandwidth:        {:.2} MB/sec", fast_mb_per_sec);
-    println!("  Confidence:       {:.2}", fast_res.diagnostics.overall_confidence);
+    println!(
+        "  Confidence:       {:.2}",
+        fast_res.diagnostics.overall_confidence
+    );
 
     // 2. Benchmark BALANCED profile
-    let bal_config = Config::builder().profile(ExecutionProfile::Balanced).build();
+    let bal_config = Config::builder()
+        .profile(ExecutionProfile::Balanced)
+        .build();
     let bal_conv = Converter::new(bal_config);
     let start_bal = Instant::now();
     let bal_res = bal_conv.convert_bytes(&pdf_bytes).unwrap();
@@ -77,10 +82,15 @@ fn test_benchmark_throughput_and_profiles() {
     println!("\n[PROFILE: BALANCED]");
     println!("  Total Time:       {:.2?}", bal_duration);
     println!("  Throughput:       {:.1} pages/sec", bal_pages_per_sec);
-    println!("  Confidence:       {:.2}", bal_res.diagnostics.overall_confidence);
+    println!(
+        "  Confidence:       {:.2}",
+        bal_res.diagnostics.overall_confidence
+    );
 
     // 3. Benchmark LOW_MEMORY profile
-    let low_config = Config::builder().profile(ExecutionProfile::LowMemory).build();
+    let low_config = Config::builder()
+        .profile(ExecutionProfile::LowMemory)
+        .build();
     let low_conv = Converter::new(low_config);
     let start_low = Instant::now();
     let low_res = low_conv.convert_bytes(&pdf_bytes).unwrap();
@@ -90,7 +100,10 @@ fn test_benchmark_throughput_and_profiles() {
     println!("\n[PROFILE: LOW_MEMORY]");
     println!("  Total Time:       {:.2?}", low_duration);
     println!("  Throughput:       {:.1} pages/sec", low_pages_per_sec);
-    println!("  Confidence:       {:.2}", low_res.diagnostics.overall_confidence);
+    println!(
+        "  Confidence:       {:.2}",
+        low_res.diagnostics.overall_confidence
+    );
 
     // 4. Benchmark Cache Hit vs Cold Parse
     let start_cache = Instant::now();

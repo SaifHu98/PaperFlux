@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_ast::geometry::{BoundingBox, WritingDirection};
 use pdf2md_pdf::elements::RawPage;
 use pdf2md_text::bidi::is_rtl_char;
 use pdf2md_text::quality::TextQualityAssessor;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ArabicDialectHint {
@@ -138,7 +138,11 @@ impl ArabicOcrDecisionEngine {
         }
 
         // 3. Extract and analyze native text quality
-        let full_text: String = spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
+        let full_text: String = spans
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         let quality_report = TextQualityAssessor::assess(&full_text);
 
         let mut arabic_count = 0;
@@ -152,7 +156,9 @@ impl ArabicOcrDecisionEngine {
             }
         }
 
-        let is_bilingual = arabic_count > 0 && latin_count > 0 && (latin_count as f32 / (arabic_count + latin_count) as f32) > 0.15;
+        let is_bilingual = arabic_count > 0
+            && latin_count > 0
+            && (latin_count as f32 / (arabic_count + latin_count) as f32) > 0.15;
         let native_quality = quality_report.quality_score;
 
         let estimated_dpi = if calligraphy.is_calligraphic {
@@ -192,7 +198,10 @@ impl ArabicOcrDecisionEngine {
                 preflight,
                 reason: format!(
                     "Calligraphic script ({}) detected requiring {} DPI OCR resolution: {}",
-                    calligraphy.script_type.map(|s| format!("{:?}", s)).unwrap_or_else(|| "Calligraphy".to_string()),
+                    calligraphy
+                        .script_type
+                        .map(|s| format!("{:?}", s))
+                        .unwrap_or_else(|| "Calligraphy".to_string()),
                     estimated_dpi,
                     calligraphy.reason
                 ),

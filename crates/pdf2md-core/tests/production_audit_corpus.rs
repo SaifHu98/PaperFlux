@@ -1,6 +1,7 @@
-use std::time::Instant;
 use pdf2md_core::{Config, Converter, ExecutionProfile};
+use std::time::Instant;
 
+#[allow(dead_code)]
 struct AuditRecord {
     genre: &'static str,
     input_bytes: usize,
@@ -13,7 +14,7 @@ struct AuditRecord {
     warnings_count: usize,
 }
 
-fn create_synthetic_doc_pdf(genre: &str, content: &str) -> Vec<u8> {
+fn create_synthetic_doc_pdf(_genre: &str, content: &str) -> Vec<u8> {
     let stream_len = content.len();
     format!(
         "%PDF-1.4\n\
@@ -50,13 +51,18 @@ fn test_production_benchmark_17_genres() {
     ];
 
     let mut records = Vec::new();
-    let config = Config::builder().profile(ExecutionProfile::Balanced).build();
+    let config = Config::builder()
+        .profile(ExecutionProfile::Balanced)
+        .build();
     let converter = Converter::new(config);
 
     println!("\n==========================================================================================================");
     println!("                                   17-GENRE PRODUCTION BENCHMARK AUDIT                                    ");
     println!("==========================================================================================================");
-    println!("{:<32} | {:<8} | {:<6} | {:<10} | {:<8} | {:<8} | {:<8}", "Genre", "Size", "Pages", "Time (ms)", "Conf", "Struct", "Text Acc");
+    println!(
+        "{:<32} | {:<8} | {:<6} | {:<10} | {:<8} | {:<8} | {:<8}",
+        "Genre", "Size", "Pages", "Time (ms)", "Conf", "Struct", "Text Acc"
+    );
     println!("----------------------------------------------------------------------------------------------------------");
 
     for (genre, content) in corpus {
@@ -88,10 +94,18 @@ fn test_production_benchmark_17_genres() {
             record.text_accuracy
         );
 
-        assert!(record.confidence >= 0.85, "Confidence score must be >= 0.85 for {}", record.genre);
+        assert!(
+            record.confidence >= 0.85,
+            "Confidence score must be >= 0.85 for {}",
+            record.genre
+        );
         records.push(record);
     }
 
     println!("==========================================================================================================\n");
-    assert_eq!(records.len(), 17, "All 17 genres must be successfully audited");
+    assert_eq!(
+        records.len(),
+        17,
+        "All 17 genres must be successfully audited"
+    );
 }

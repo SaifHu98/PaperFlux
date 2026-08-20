@@ -1,7 +1,10 @@
 use pdf2md_ast::{InlineNode, ListItem, Node};
 use pdf2md_text::normalizer::TextNormalizer;
 
-pub fn detect_list_item(text: &str, indent_pt: f32) -> Option<(bool, Option<String>, String, usize)> {
+pub fn detect_list_item(
+    text: &str,
+    indent_pt: f32,
+) -> Option<(bool, Option<String>, String, usize)> {
     let trimmed = text.trim_start();
     if trimmed.is_empty() {
         return None;
@@ -27,22 +30,24 @@ pub fn detect_list_item(text: &str, indent_pt: f32) -> Option<(bool, Option<Stri
     }
 
     // Numbered / Lettered / Clause lists: "1.", "1)", "(1)", "[1]", "a.", "i.", "1.1."
-    if let Some(pos) = trimmed.find(|c| c == '.' || c == ')' || c == ']') {
-        let prefix = &trimmed[..pos].trim_start_matches('(').trim_start_matches('[');
-        if !prefix.is_empty() && prefix.len() <= 8 {
-            if prefix.parse::<u64>().is_ok()
+    if let Some(pos) = trimmed.find(['.', ')', ']']) {
+        let prefix = &trimmed[..pos]
+            .trim_start_matches('(')
+            .trim_start_matches('[');
+        if !prefix.is_empty()
+            && prefix.len() <= 8
+            && (prefix.parse::<u64>().is_ok()
                 || is_roman_numeral(prefix)
                 || is_single_letter(prefix)
-                || is_hierarchical_clause(prefix)
-            {
-                let after = trimmed[pos + 1..].trim_start();
-                return Some((
-                    true,
-                    Some(prefix.to_string()),
-                    after.to_string(),
-                    indent_level,
-                ));
-            }
+                || is_hierarchical_clause(prefix))
+        {
+            let after = trimmed[pos + 1..].trim_start();
+            return Some((
+                true,
+                Some(prefix.to_string()),
+                after.to_string(),
+                indent_level,
+            ));
         }
     }
 

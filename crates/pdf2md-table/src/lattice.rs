@@ -69,7 +69,8 @@ pub fn extract_lattice_tables(
             // Find all text spans inside this cell
             let mut cell_text = String::new();
             for (idx, span) in spans.iter().enumerate() {
-                if cell_rect.contains_point(Point::new(span.bbox.center_x(), span.bbox.center_y())) {
+                if cell_rect.contains_point(Point::new(span.bbox.center_x(), span.bbox.center_y()))
+                {
                     if !cell_text.is_empty() {
                         cell_text.push(' ');
                     }
@@ -104,8 +105,10 @@ pub fn extract_lattice_tables(
         let table_bbox = BoundingBox::new(
             clustered_x.first().copied().unwrap_or(0.0),
             clustered_y.first().copied().unwrap_or(0.0),
-            clustered_x.last().copied().unwrap_or(0.0) - clustered_x.first().copied().unwrap_or(0.0),
-            clustered_y.last().copied().unwrap_or(0.0) - clustered_y.first().copied().unwrap_or(0.0),
+            clustered_x.last().copied().unwrap_or(0.0)
+                - clustered_x.first().copied().unwrap_or(0.0),
+            clustered_y.last().copied().unwrap_or(0.0)
+                - clustered_y.first().copied().unwrap_or(0.0),
         );
 
         tables.push((

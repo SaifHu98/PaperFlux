@@ -58,7 +58,9 @@ fn test_ocr_decision_scanned_image_page() {
 #[test]
 fn test_ocr_decision_corrupted_font_stream() {
     let mut page = RawPage::new(1, 612.0, 792.0);
-    page.text_spans.push(create_span("Th\u{FFFD}s is c\u{FFFD}rr\u{FFFD}pt\u{FFFD}d \u{E001}\u{E002}\u{E003} f\u{FFFD}nt"));
+    page.text_spans.push(create_span(
+        "Th\u{FFFD}s is c\u{FFFD}rr\u{FFFD}pt\u{FFFD}d \u{E001}\u{E002}\u{E003} f\u{FFFD}nt",
+    ));
     page.images.push(ImageObject {
         id: "Img1".into(),
         bbox: BoundingBox::new(72.0, 72.0, 300.0, 200.0),
@@ -70,7 +72,10 @@ fn test_ocr_decision_corrupted_font_stream() {
 
     let decision = OcrNecessityEvaluator::evaluate(&page);
 
-    assert!(decision.should_ocr, "Corrupted font stream must trigger OCR");
+    assert!(
+        decision.should_ocr,
+        "Corrupted font stream must trigger OCR"
+    );
     assert!(decision.is_font_corrupted);
     assert!(decision.ocr_necessity_score >= 0.85);
 }
@@ -79,8 +84,10 @@ fn test_ocr_decision_corrupted_font_stream() {
 fn test_ocr_fusion_selection() {
     // 1. Native text is superior
     let (text1, conf1, source1) = OcrFusionEngine::select_best_stream(
-        "High quality native text.", 0.95,
-        "Slightly garbled ocr text", 0.80
+        "High quality native text.",
+        0.95,
+        "Slightly garbled ocr text",
+        0.80,
     );
     assert_eq!(source1, "native");
     assert_eq!(text1, "High quality native text.");
@@ -88,8 +95,10 @@ fn test_ocr_fusion_selection() {
 
     // 2. OCR text is superior when native text is corrupted
     let (text2, conf2, source2) = OcrFusionEngine::select_best_stream(
-        "C\u{FFFD}rr\u{FFFD}pted n\u{E001}t\u{E002}ve", 0.40,
-        "Corrected high confidence OCR text.", 0.92
+        "C\u{FFFD}rr\u{FFFD}pted n\u{E001}t\u{E002}ve",
+        0.40,
+        "Corrected high confidence OCR text.",
+        0.92,
     );
     assert_eq!(source2, "ocr");
     assert_eq!(text2, "Corrected high confidence OCR text.");

@@ -1,7 +1,7 @@
-use unicode_normalization::UnicodeNormalization;
 use crate::bidi::process_bidi_text;
 use crate::hyphenation::clean_soft_hyphens;
 use crate::ligatures::unfold_ligatures;
+use unicode_normalization::UnicodeNormalization;
 
 pub struct TextNormalizer;
 

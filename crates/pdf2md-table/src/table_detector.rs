@@ -1,16 +1,13 @@
+use crate::borderless::extract_borderless_tables;
+use crate::cell_merging::balance_table_columns;
+use crate::lattice::extract_lattice_tables;
 use pdf2md_ast::Node;
 use pdf2md_pdf::elements::{PathSegment, TextSpan};
-use crate::borderless::extract_borderless_tables;
-use crate::lattice::extract_lattice_tables;
-use crate::cell_merging::balance_table_columns;
 
 pub struct TableDetector;
 
 impl TableDetector {
-    pub fn detect_tables(
-        paths: &[PathSegment],
-        spans: &[TextSpan],
-    ) -> (Vec<Node>, Vec<usize>) {
+    pub fn detect_tables(paths: &[PathSegment], spans: &[TextSpan]) -> (Vec<Node>, Vec<usize>) {
         let mut final_tables = Vec::new();
         let mut all_consumed_indices = Vec::new();
 

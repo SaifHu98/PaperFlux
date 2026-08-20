@@ -20,11 +20,18 @@ impl FootnoteDetector {
             return None;
         }
 
-        let full_text = spans.iter().map(|s| s.text.as_str()).collect::<Vec<_>>().join(" ");
+        let full_text = spans
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         let trimmed = full_text.trim();
 
         // Must be in bottom 25% of the page
-        let min_y = spans.iter().map(|s| s.bbox.y_min()).fold(f32::MAX, f32::min);
+        let min_y = spans
+            .iter()
+            .map(|s| s.bbox.y_min())
+            .fold(f32::MAX, f32::min);
         if min_y < self.page_height * 0.70 {
             return None;
         }

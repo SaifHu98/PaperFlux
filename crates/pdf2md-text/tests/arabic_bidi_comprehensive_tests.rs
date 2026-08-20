@@ -62,12 +62,18 @@ fn test_bidi_arabic_with_eastern_and_western_numbers() {
 
 #[test]
 fn test_bidi_arabic_with_embedded_urls() {
-    let text = "للمزيد من المعلومات يرجى زيارة الموقع https://github.com/ecouni/paperflux للمتابعة.";
+    let text =
+        "للمزيد من المعلومات يرجى زيارة الموقع https://github.com/ecouni/paperflux للمتابعة.";
     let tokens = BidiTokenizer::tokenize(text);
-    let url_token = tokens.iter().find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::Url);
+    let url_token = tokens
+        .iter()
+        .find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::Url);
 
     assert!(url_token.is_some());
-    assert_eq!(url_token.unwrap().text, "https://github.com/ecouni/paperflux");
+    assert_eq!(
+        url_token.unwrap().text,
+        "https://github.com/ecouni/paperflux"
+    );
 
     let ctx = ArabicProcessingContext::default();
     let (processed, _) = ArabicTextPipeline::process(text, &ctx);
@@ -78,7 +84,9 @@ fn test_bidi_arabic_with_embedded_urls() {
 fn test_bidi_arabic_with_embedded_emails() {
     let text = "للتواصل مع فريق التطوير راسلنا على dev@ecouni.org مباشرة.";
     let tokens = BidiTokenizer::tokenize(text);
-    let email_token = tokens.iter().find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::Email);
+    let email_token = tokens
+        .iter()
+        .find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::Email);
 
     assert!(email_token.is_some());
     assert_eq!(email_token.unwrap().text, "dev@ecouni.org");
@@ -92,7 +100,9 @@ fn test_bidi_arabic_with_embedded_emails() {
 fn test_bidi_arabic_with_code_fragments() {
     let text = "قم بتنفيذ الأمر `cargo install paperflux` لبدء الاستخدام.";
     let tokens = BidiTokenizer::tokenize(text);
-    let code_token = tokens.iter().find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::CodeFragment);
+    let code_token = tokens
+        .iter()
+        .find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::CodeFragment);
 
     assert!(code_token.is_some());
     assert_eq!(code_token.unwrap().text, "`cargo install paperflux`");
@@ -116,7 +126,9 @@ fn test_bidi_arabic_with_mathematical_equations() {
 fn test_bidi_arabic_footnotes_and_citations() {
     let text = "كما ورد في المرجع [1] انظر الصفحة 45.";
     let tokens = BidiTokenizer::tokenize(text);
-    let cite_token = tokens.iter().find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::CitationOrReference);
+    let cite_token = tokens
+        .iter()
+        .find(|t| t.kind == pdf2md_text::arabic::bidi_engine::BidiTokenKind::CitationOrReference);
 
     assert!(cite_token.is_some());
     assert_eq!(cite_token.unwrap().text, "[1]");

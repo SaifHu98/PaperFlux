@@ -1,8 +1,8 @@
-use thiserror::Error;
 use pdf2md_ast::{ConversionDiagnostics, Document};
 use pdf2md_ocr::OcrError;
 use pdf2md_pdf::document::PdfError;
 use pdf2md_pdf::security::SecurityError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ConversionError {

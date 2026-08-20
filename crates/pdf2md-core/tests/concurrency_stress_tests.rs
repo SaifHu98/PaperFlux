@@ -1,7 +1,7 @@
+use pdf2md_core::{Config, Converter, ExecutionProfile};
 use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
-use pdf2md_core::{Config, Converter, ExecutionProfile};
 
 #[test]
 fn test_high_concurrency_stress_100_threads() {
@@ -34,7 +34,9 @@ fn test_high_concurrency_stress_100_threads() {
             let res = conv_clone.convert_bytes(&bytes_clone);
             assert!(res.is_ok(), "Thread {} failed conversion", i);
             let conv_res = res.unwrap();
-            assert!(conv_res.markdown.contains("Concurrent Stress Test Document"));
+            assert!(conv_res
+                .markdown
+                .contains("Concurrent Stress Test Document"));
             assert_eq!(conv_res.diagnostics.total_pages, 1);
         });
 
@@ -48,7 +50,13 @@ fn test_high_concurrency_stress_100_threads() {
     let elapsed = start_time.elapsed();
     println!("\n=== Concurrency Stress Test ===");
     println!("Completed 100 concurrent conversions in {:.2?}", elapsed);
-    println!("Average latency per concurrent request: {:.2?}", elapsed / (concurrency_count as u32));
-    println!("Throughput: {:.1} docs/sec", (concurrency_count as f64) / elapsed.as_secs_f64());
+    println!(
+        "Average latency per concurrent request: {:.2?}",
+        elapsed / (concurrency_count as u32)
+    );
+    println!(
+        "Throughput: {:.1} docs/sec",
+        (concurrency_count as f64) / elapsed.as_secs_f64()
+    );
     println!("===============================\n");
 }

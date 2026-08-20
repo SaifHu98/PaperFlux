@@ -1,8 +1,8 @@
-use utoipa::OpenApi;
 use crate::models::{
     AsyncTaskResponse, ConversionResponse, ErrorResponse, HealthResponse, TaskStatus,
     TaskStatusResponse,
 };
+use utoipa::OpenApi;
 
 #[derive(OpenApi)]
 #[openapi(

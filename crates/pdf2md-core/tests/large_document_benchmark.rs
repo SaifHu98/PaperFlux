@@ -1,5 +1,5 @@
-use std::time::Instant;
 use pdf2md_core::{Config, Converter, ExecutionProfile};
+use std::time::Instant;
 
 /// Generates a valid multi-page PDF document with `num_pages` pages
 fn generate_large_multipage_pdf(num_pages: usize) -> Vec<u8> {
@@ -64,13 +64,13 @@ fn test_large_100_page_pdf_parallel_conversion_benchmark() {
     assert!(!pdf_bytes.is_empty());
 
     // 1. Convert with Fast profile (Rayon parallel processing enabled)
-    let parallel_config = Config::builder()
-        .profile(ExecutionProfile::Fast)
-        .build();
+    let parallel_config = Config::builder().profile(ExecutionProfile::Fast).build();
     let converter = Converter::new(parallel_config);
 
     let start_parallel = Instant::now();
-    let result_parallel = converter.convert_bytes(&pdf_bytes).expect("Parallel 100-page conversion should succeed");
+    let result_parallel = converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Parallel 100-page conversion should succeed");
     let parallel_duration = start_parallel.elapsed();
 
     println!(
@@ -81,9 +81,15 @@ fn test_large_100_page_pdf_parallel_conversion_benchmark() {
 
     assert_eq!(result_parallel.diagnostics.total_pages, num_pages);
     assert_eq!(result_parallel.document.sections.len(), num_pages);
-    assert!(result_parallel.markdown.contains("Section Header for Page 1"));
-    assert!(result_parallel.markdown.contains("Section Header for Page 50"));
-    assert!(result_parallel.markdown.contains("Section Header for Page 100"));
+    assert!(result_parallel
+        .markdown
+        .contains("Section Header for Page 1"));
+    assert!(result_parallel
+        .markdown
+        .contains("Section Header for Page 50"));
+    assert!(result_parallel
+        .markdown
+        .contains("Section Header for Page 100"));
 
     // 2. Convert with LowMemory profile (Sequential processing)
     let seq_config = Config::builder()
@@ -92,7 +98,9 @@ fn test_large_100_page_pdf_parallel_conversion_benchmark() {
     let seq_converter = Converter::new(seq_config);
 
     let start_seq = Instant::now();
-    let result_seq = seq_converter.convert_bytes(&pdf_bytes).expect("Sequential 100-page conversion should succeed");
+    let result_seq = seq_converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Sequential 100-page conversion should succeed");
     let seq_duration = start_seq.elapsed();
 
     println!(
@@ -103,5 +111,8 @@ fn test_large_100_page_pdf_parallel_conversion_benchmark() {
 
     assert_eq!(result_seq.diagnostics.total_pages, num_pages);
     assert_eq!(result_seq.document.sections.len(), num_pages);
-    assert_eq!(result_parallel.document.sections.len(), result_seq.document.sections.len());
+    assert_eq!(
+        result_parallel.document.sections.len(),
+        result_seq.document.sections.len()
+    );
 }

@@ -58,7 +58,8 @@ impl StagedReadingOrderEngine {
 
         // Top full-width blocks
         if !full_width_top.is_empty() {
-            let top_blocks = self.segment_vertical_blocks(&full_width_top, &mut next_id, true, None);
+            let top_blocks =
+                self.segment_vertical_blocks(&full_width_top, &mut next_id, true, None);
             ordered_blocks.extend(top_blocks);
         }
 
@@ -78,11 +79,13 @@ impl StagedReadingOrderEngine {
                 }
 
                 // Left column first, top-to-bottom
-                let left_blocks = self.segment_vertical_blocks(&col_left, &mut next_id, false, Some(0));
+                let left_blocks =
+                    self.segment_vertical_blocks(&col_left, &mut next_id, false, Some(0));
                 ordered_blocks.extend(left_blocks);
 
                 // Right column second, top-to-bottom
-                let right_blocks = self.segment_vertical_blocks(&col_right, &mut next_id, false, Some(1));
+                let right_blocks =
+                    self.segment_vertical_blocks(&col_right, &mut next_id, false, Some(1));
                 ordered_blocks.extend(right_blocks);
             } else if column_count == 3 {
                 // 3-column flow
@@ -101,18 +104,39 @@ impl StagedReadingOrderEngine {
                     }
                 }
 
-                ordered_blocks.extend(self.segment_vertical_blocks(&col1, &mut next_id, false, Some(0)));
-                ordered_blocks.extend(self.segment_vertical_blocks(&col2, &mut next_id, false, Some(1)));
-                ordered_blocks.extend(self.segment_vertical_blocks(&col3, &mut next_id, false, Some(2)));
+                ordered_blocks.extend(self.segment_vertical_blocks(
+                    &col1,
+                    &mut next_id,
+                    false,
+                    Some(0),
+                ));
+                ordered_blocks.extend(self.segment_vertical_blocks(
+                    &col2,
+                    &mut next_id,
+                    false,
+                    Some(1),
+                ));
+                ordered_blocks.extend(self.segment_vertical_blocks(
+                    &col3,
+                    &mut next_id,
+                    false,
+                    Some(2),
+                ));
             } else {
                 // Single column flow
-                ordered_blocks.extend(self.segment_vertical_blocks(&column_spans, &mut next_id, false, None));
+                ordered_blocks.extend(self.segment_vertical_blocks(
+                    &column_spans,
+                    &mut next_id,
+                    false,
+                    None,
+                ));
             }
         }
 
         // Bottom full-width blocks
         if !full_width_bottom.is_empty() {
-            let bot_blocks = self.segment_vertical_blocks(&full_width_bottom, &mut next_id, true, None);
+            let bot_blocks =
+                self.segment_vertical_blocks(&full_width_bottom, &mut next_id, true, None);
             ordered_blocks.extend(bot_blocks);
         }
 
@@ -180,7 +204,12 @@ impl StagedReadingOrderEngine {
         }
 
         let mut sorted_spans = spans.to_vec();
-        sorted_spans.sort_by(|a, b| a.bbox.y.partial_cmp(&b.bbox.y).unwrap_or(std::cmp::Ordering::Equal));
+        sorted_spans.sort_by(|a, b| {
+            a.bbox
+                .y
+                .partial_cmp(&b.bbox.y)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         let mut blocks = Vec::new();
         let mut curr_group = Vec::new();

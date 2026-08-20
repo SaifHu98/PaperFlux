@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use std::sync::RwLock;
 use pdf2md_ast::Section;
 use pdf2md_pdf::elements::RawPage;
+use std::collections::HashMap;
+use std::sync::RwLock;
 
 pub struct PageCache {
     cache: RwLock<HashMap<u64, Section>>,

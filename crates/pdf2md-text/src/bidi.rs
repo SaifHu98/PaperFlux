@@ -17,18 +17,67 @@ pub fn contains_rtl(text: &str) -> bool {
 }
 
 pub fn is_final_presentation_form(ch: char) -> bool {
-    matches!(ch as u32,
-        0xFE8E | 0xFE90 | 0xFE94 | 0xFE96 | 0xFE9A | 0xFE9E | 0xFEA2 | 0xFEA6 | 0xFEAA | 0xFEAC
-        | 0xFEAE | 0xFEB0 | 0xFEB2 | 0xFEB6 | 0xFEBA | 0xFEBE | 0xFEC2 | 0xFEC6 | 0xFECA | 0xFECE
-        | 0xFED2 | 0xFED6 | 0xFEDA | 0xFEDE | 0xFEE2 | 0xFEE6 | 0xFEEA | 0xFEEE | 0xFEF0 | 0xFEF2
+    matches!(
+        ch as u32,
+        0xFE8E
+            | 0xFE90
+            | 0xFE94
+            | 0xFE96
+            | 0xFE9A
+            | 0xFE9E
+            | 0xFEA2
+            | 0xFEA6
+            | 0xFEAA
+            | 0xFEAC
+            | 0xFEAE
+            | 0xFEB0
+            | 0xFEB2
+            | 0xFEB6
+            | 0xFEBA
+            | 0xFEBE
+            | 0xFEC2
+            | 0xFEC6
+            | 0xFECA
+            | 0xFECE
+            | 0xFED2
+            | 0xFED6
+            | 0xFEDA
+            | 0xFEDE
+            | 0xFEE2
+            | 0xFEE6
+            | 0xFEEA
+            | 0xFEEE
+            | 0xFEF0
+            | 0xFEF2
     )
 }
 
 pub fn is_initial_presentation_form(ch: char) -> bool {
-    matches!(ch as u32,
-        0xFE8B | 0xFE91 | 0xFE97 | 0xFE9B | 0xFE9F | 0xFEA3 | 0xFEA7 | 0xFEB3 | 0xFEB7 | 0xFEBB
-        | 0xFEBF | 0xFEC3 | 0xFEC7 | 0xFECB | 0xFECF | 0xFED3 | 0xFED7 | 0xFEDB | 0xFEDF | 0xFEE3
-        | 0xFEE7 | 0xFEEB | 0xFEF3
+    matches!(
+        ch as u32,
+        0xFE8B
+            | 0xFE91
+            | 0xFE97
+            | 0xFE9B
+            | 0xFE9F
+            | 0xFEA3
+            | 0xFEA7
+            | 0xFEB3
+            | 0xFEB7
+            | 0xFEBB
+            | 0xFEBF
+            | 0xFEC3
+            | 0xFEC7
+            | 0xFECB
+            | 0xFECF
+            | 0xFED3
+            | 0xFED7
+            | 0xFEDB
+            | 0xFEDF
+            | 0xFEE3
+            | 0xFEE7
+            | 0xFEEB
+            | 0xFEF3
     )
 }
 
@@ -38,7 +87,7 @@ pub fn normalize_arabic_presentation_forms(input: &str) -> String {
     for ch in input.chars() {
         let normalized = match ch {
             // Presentation Forms-B (common Arabic letters in isolated/initial/medial/final forms)
-            '\u{FE80}' => '\u{0621}', // HAMZA
+            '\u{FE80}' => '\u{0621}',              // HAMZA
             '\u{FE81}' | '\u{FE82}' => '\u{0622}', // ALEF WITH MADDA ABOVE
             '\u{FE83}' | '\u{FE84}' => '\u{0623}', // ALEF WITH HAMZA ABOVE
             '\u{FE85}' | '\u{FE86}' => '\u{0624}', // WAW WITH HAMZA ABOVE
@@ -98,11 +147,11 @@ pub fn normalize_arabic_presentation_forms(input: &str) -> String {
             // Persian / Urdu additions
             '\u{FB56}' | '\u{FB57}' | '\u{FB58}' | '\u{FB59}' => '\u{067E}', // PEH
             '\u{FB7A}' | '\u{FB7B}' | '\u{FB7C}' | '\u{FB7D}' => '\u{0686}', // TCHEH
-            '\u{FB8A}' | '\u{FB8B}' => '\u{0698}', // JEH
+            '\u{FB8A}' | '\u{FB8B}' => '\u{0698}',                           // JEH
             '\u{FB8E}' | '\u{FB8F}' | '\u{FB90}' | '\u{FB91}' => '\u{06A9}', // KEHEH
             '\u{FB92}' | '\u{FB93}' | '\u{FB94}' | '\u{FB95}' => '\u{06AF}', // GAF
             '\u{FBA6}' | '\u{FBA7}' | '\u{FBA8}' | '\u{FBA9}' => '\u{06BA}', // NOON GHUNNA
-            '\u{FBF6}' | '\u{FBF7}' | '\u{FBF8}' => '\u{06CC}', // FARSI YEH
+            '\u{FBF6}' | '\u{FBF7}' | '\u{FBF8}' => '\u{06CC}',              // FARSI YEH
             _ => ch,
         };
         out.push(normalized);

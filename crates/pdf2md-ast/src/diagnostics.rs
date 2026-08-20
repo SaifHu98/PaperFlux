@@ -90,23 +90,11 @@ pub enum WarningCategory {
     UnsupportedFeature,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ProcessingStats {
     pub parse_time_ms: u64,
     pub layout_time_ms: u64,
     pub render_time_ms: u64,
     pub total_time_ms: u64,
     pub memory_peak_bytes: usize,
-}
-
-impl Default for ProcessingStats {
-    fn default() -> Self {
-        Self {
-            parse_time_ms: 0,
-            layout_time_ms: 0,
-            render_time_ms: 0,
-            total_time_ms: 0,
-            memory_peak_bytes: 0,
-        }
-    }
 }

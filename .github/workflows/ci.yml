@@ -1,0 +1,113 @@
+name: PaperFlux CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
+
+jobs:
+  lint-and-format:
+    name: Code Quality (Clippy & Rustfmt)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check code formatting (rustfmt)
+        run: cargo fmt --all --check
+
+      - name: Run Clippy linter
+        run: cargo clippy --all-targets -- -D warnings
+
+  test-rust:
+    name: Rust Test Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Rust workspace tests
+        run: cargo test --workspace --verbose
+
+  test-python:
+    name: Python FFI Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Python extension module
+        run: |
+          cargo build -p pdf2md-python
+          cp target/debug/libpdf2md_python.so python/paperflux.so || cp target/debug/pdf2md_python.dll python/paperflux.pyd || true
+
+      - name: Run Python FFI test suite
+        run: python3 python/test_bindings.py
+
+  test-php:
+    name: PHP & Laravel Integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ["8.2", "8.3"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, json
+          coverage: none
+
+      - name: Run PHP Unit & UTF-8 Tests
+        run: |
+          php php/tests/run_tests.php
+          php php/tests/ArabicUtf8IntegrityTest.php
+          php php/tests/LaravelIntegrationTest.php
+
+  test-typescript:
+    name: TypeScript & WebAssembly SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run SDK Tests
+        run: node crates/pdf2md-wasm/ts/test_sdk.js

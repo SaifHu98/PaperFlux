@@ -1,12 +1,10 @@
-use unicode_normalization::UnicodeNormalization;
-use crate::arabic::context::{
-    ArabicNormalizationMode, ArabicProcessingContext, PunctuationMode,
-};
+use crate::arabic::context::{ArabicNormalizationMode, ArabicProcessingContext, PunctuationMode};
 use crate::arabic::joining::ArabicJoiningReconstructor;
 use crate::arabic::numerals::ArabicNumerals;
 use crate::arabic::shaping::ArabicShaper;
 use crate::bidi::process_bidi_text;
 use crate::hyphenation::clean_soft_hyphens;
+use unicode_normalization::UnicodeNormalization;
 
 pub struct ArabicTextPipeline;
 
@@ -93,7 +91,10 @@ fn mirror_arabic_punctuation(input: &str) -> String {
             ';' => out.push('؛'),
             ',' => {
                 // If comma is between digits (e.g. 15,450), preserve as numeric comma
-                let is_numeric = i > 0 && i + 1 < chars.len() && chars[i-1].is_ascii_digit() && chars[i+1].is_ascii_digit();
+                let is_numeric = i > 0
+                    && i + 1 < chars.len()
+                    && chars[i - 1].is_ascii_digit()
+                    && chars[i + 1].is_ascii_digit();
                 if is_numeric {
                     out.push(',');
                 } else {

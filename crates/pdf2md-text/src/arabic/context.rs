@@ -1,10 +1,11 @@
-use serde::{Deserialize, Serialize};
 use crate::language::Language;
 use crate::script::Script;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub enum NumeralSystem {
     /// Preserve original numerals as written in source PDF (Default)
+    #[default]
     PreserveAsIs,
 
     /// Eastern Arabic-Indic: ٠ ١ ٢ ٣ ٤ ٥ ٦ ٧ ٨ ٩
@@ -20,15 +21,10 @@ pub enum NumeralSystem {
     Mixed,
 }
 
-impl Default for NumeralSystem {
-    fn default() -> Self {
-        Self::PreserveAsIs
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum ArabicShapingMode {
     /// Convert all Presentation Forms A & B back to base Unicode logical characters (Default)
+    #[default]
     UnshapeToUnicode,
 
     /// Preserve glyph shaping as-is
@@ -38,15 +34,10 @@ pub enum ArabicShapingMode {
     NormalizePresentationForms,
 }
 
-impl Default for ArabicShapingMode {
-    fn default() -> Self {
-        Self::UnshapeToUnicode
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum ArabicNormalizationMode {
     /// Full NFC Unicode normalization
+    #[default]
     StandardNFC,
 
     /// Strip Harakat / Tashkeel
@@ -59,15 +50,10 @@ pub enum ArabicNormalizationMode {
     OrthographicNormalized,
 }
 
-impl Default for ArabicNormalizationMode {
-    fn default() -> Self {
-        Self::StandardNFC
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum DiacriticMode {
     /// Preserve all vowel marks (Fatha, Damma, Kasra, Shadda, Sukun, Tanween)
+    #[default]
     PreserveHarakat,
 
     /// Strip short vowels but preserve Shadda (gemination)
@@ -80,28 +66,17 @@ pub enum DiacriticMode {
     NormalizeQuranic,
 }
 
-impl Default for DiacriticMode {
-    fn default() -> Self {
-        Self::PreserveHarakat
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum PunctuationMode {
     /// Use Arabic mirrored punctuation: ؟ (question), ؛ (semicolon), ، (comma), « » (quotes)
+    #[default]
     MirroredPunctuation,
 
     /// Preserve standard ASCII punctuation
     Preserve,
 }
 
-impl Default for PunctuationMode {
-    fn default() -> Self {
-        Self::MirroredPunctuation
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum BidiMode {
     /// PDF text stream is visual order; reorder to logical standard order
     VisualToLogicalReorder,
@@ -110,13 +85,8 @@ pub enum BidiMode {
     LogicalNative,
 
     /// Auto-detect based on character cluster directions
+    #[default]
     AutoDetect,
-}
-
-impl Default for BidiMode {
-    fn default() -> Self {
-        Self::AutoDetect
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

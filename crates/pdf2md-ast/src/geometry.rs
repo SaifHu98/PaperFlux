@@ -20,31 +20,21 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum WritingDirection {
+    #[default]
     LeftToRight,
     RightToLeft,
     TopToBottom,
 }
 
-impl Default for WritingDirection {
-    fn default() -> Self {
-        Self::LeftToRight
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum Alignment {
+    #[default]
     Left,
     Center,
     Right,
     Justified,
-}
-
-impl Default for Alignment {
-    fn default() -> Self {
-        Self::Left
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -192,8 +182,12 @@ impl Rect {
     }
 
     pub fn distance_to(&self, other: &Rect) -> f32 {
-        let dx = (self.x_min() - other.x_max()).max(other.x_min() - self.x_max()).max(0.0);
-        let dy = (self.y_min() - other.y_max()).max(other.y_min() - self.y_max()).max(0.0);
+        let dx = (self.x_min() - other.x_max())
+            .max(other.x_min() - self.x_max())
+            .max(0.0);
+        let dy = (self.y_min() - other.y_max())
+            .max(other.y_min() - self.y_max())
+            .max(0.0);
         (dx * dx + dy * dy).sqrt()
     }
 }
@@ -260,8 +254,18 @@ pub struct Color {
 }
 
 impl Color {
-    pub const BLACK: Self = Self { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
-    pub const WHITE: Self = Self { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
+    pub const BLACK: Self = Self {
+        r: 0.0,
+        g: 0.0,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const WHITE: Self = Self {
+        r: 1.0,
+        g: 1.0,
+        b: 1.0,
+        a: 1.0,
+    };
 
     pub fn rgb(r: f32, g: f32, b: f32) -> Self {
         Self { r, g, b, a: 1.0 }

@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use thiserror::Error;
-use pdf2md_ast::DocumentMetadata;
 use crate::elements::RawPage;
 use crate::font::FontMap;
 use crate::parser::ContentStreamParser;
 use crate::security::{SecurityError, SecurityLimits};
 use crate::stream::decode_stream;
+use pdf2md_ast::DocumentMetadata;
+use std::collections::HashMap;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum PdfError {
@@ -114,7 +114,11 @@ fn extract_pdf_string_value(slice: &str) -> Option<String> {
     }
 }
 
-fn extract_pages(raw_bytes: &[u8], pdf_str: &str, limits: &SecurityLimits) -> Result<Vec<RawPage>, PdfError> {
+fn extract_pages(
+    raw_bytes: &[u8],
+    pdf_str: &str,
+    limits: &SecurityLimits,
+) -> Result<Vec<RawPage>, PdfError> {
     let mut raw_pages = Vec::new();
     let mut page_num = 1;
 
@@ -123,16 +127,21 @@ fn extract_pages(raw_bytes: &[u8], pdf_str: &str, limits: &SecurityLimits) -> Re
     while let Some(page_pos) = pdf_str[search_idx..].find("/Type /Page") {
         let abs_pos = search_idx + page_pos;
         let next_char = pdf_str.as_bytes().get(abs_pos + 11);
-        
+
         // If it is /Type /Pages, skip
         if next_char == Some(&b's') || next_char == Some(&b'S') {
             search_idx = abs_pos + 12;
             continue;
         }
-        
+
         // Find enclosing object `n m obj ... endobj`
-        let obj_start = pdf_str[..abs_pos].rfind("obj").unwrap_or(abs_pos.saturating_sub(100));
-        let obj_end = pdf_str[abs_pos..].find("endobj").map(|p| abs_pos + p).unwrap_or(pdf_str.len());
+        let obj_start = pdf_str[..abs_pos]
+            .rfind("obj")
+            .unwrap_or(abs_pos.saturating_sub(100));
+        let obj_end = pdf_str[abs_pos..]
+            .find("endobj")
+            .map(|p| abs_pos + p)
+            .unwrap_or(pdf_str.len());
 
         let page_dict = &pdf_str[obj_start..obj_end];
 
@@ -145,7 +154,9 @@ fn extract_pages(raw_bytes: &[u8], pdf_str: &str, limits: &SecurityLimits) -> Re
         extract_fonts_for_page(pdf_str, page_dict, &mut fonts);
 
         // Find and decode /Contents stream
-        if let Some(contents_stream) = extract_contents_stream(raw_bytes, pdf_str, page_dict, limits)? {
+        if let Some(contents_stream) =
+            extract_contents_stream(raw_bytes, pdf_str, page_dict, limits)?
+        {
             let mut parser = ContentStreamParser::new(&fonts, height);
             parser.parse_content_stream(&contents_stream, &mut raw_page);
         }
@@ -169,7 +180,9 @@ fn extract_pages(raw_bytes: &[u8], pdf_str: &str, limits: &SecurityLimits) -> Re
         let mut stream_search = 0;
         while let Some(start_stream) = pdf_str[stream_search..].find("stream") {
             let stream_body_start = stream_search + start_stream + 6;
-            let stream_body_start = if pdf_str.as_bytes().get(stream_body_start) == Some(&b'\r') && pdf_str.as_bytes().get(stream_body_start + 1) == Some(&b'\n') {
+            let stream_body_start = if pdf_str.as_bytes().get(stream_body_start) == Some(&b'\r')
+                && pdf_str.as_bytes().get(stream_body_start + 1) == Some(&b'\n')
+            {
                 stream_body_start + 2
             } else if pdf_str.as_bytes().get(stream_body_start) == Some(&b'\n') {
                 stream_body_start + 1
@@ -181,7 +194,8 @@ fn extract_pages(raw_bytes: &[u8], pdf_str: &str, limits: &SecurityLimits) -> Re
                 let stream_body_end = stream_body_start + end_stream;
                 if stream_body_end <= raw_bytes.len() {
                     let raw_slice = &raw_bytes[stream_body_start..stream_body_end];
-                    if let Ok(decompressed) = decode_stream(raw_slice, Some("FlateDecode"), limits) {
+                    if let Ok(decompressed) = decode_stream(raw_slice, Some("FlateDecode"), limits)
+                    {
                         parser.parse_content_stream(&decompressed, &mut fallback_page);
                     } else {
                         parser.parse_content_stream(raw_slice, &mut fallback_page);
@@ -231,7 +245,10 @@ fn extract_fonts_for_page(pdf_str: &str, _page_dict: &str, fonts: &mut HashMap<S
         // Check for ToUnicode CMap
         if let Some(cmap_pos) = pdf_str[abs_pos..].find("beginbfchar") {
             let cmap_start = abs_pos + cmap_pos;
-            let cmap_end = pdf_str[cmap_start..].find("endcmap").map(|p| cmap_start + p).unwrap_or(pdf_str.len().min(cmap_start + 4096));
+            let cmap_end = pdf_str[cmap_start..]
+                .find("endcmap")
+                .map(|p| cmap_start + p)
+                .unwrap_or(pdf_str.len().min(cmap_start + 4096));
             font_map.parse_to_unicode_cmap(&pdf_str[cmap_start..cmap_end]);
         }
 
@@ -251,7 +268,9 @@ fn extract_contents_stream(
 ) -> Result<Option<Vec<u8>>, PdfError> {
     if let Some(stream_pos) = page_dict.find("stream") {
         let start_pos = stream_pos + 6;
-        let start_pos = if page_dict.as_bytes().get(start_pos) == Some(&b'\r') && page_dict.as_bytes().get(start_pos + 1) == Some(&b'\n') {
+        let start_pos = if page_dict.as_bytes().get(start_pos) == Some(&b'\r')
+            && page_dict.as_bytes().get(start_pos + 1) == Some(&b'\n')
+        {
             start_pos + 2
         } else if page_dict.as_bytes().get(start_pos) == Some(&b'\n') {
             start_pos + 1
@@ -278,7 +297,9 @@ fn extract_contents_stream(
                 let obj_slice = &pdf_str[obj_pos..];
                 if let Some(stream_pos) = obj_slice.find("stream") {
                     let mut stream_start = obj_pos + stream_pos + 6;
-                    if pdf_str.as_bytes().get(stream_start) == Some(&b'\r') && pdf_str.as_bytes().get(stream_start + 1) == Some(&b'\n') {
+                    if pdf_str.as_bytes().get(stream_start) == Some(&b'\r')
+                        && pdf_str.as_bytes().get(stream_start + 1) == Some(&b'\n')
+                    {
                         stream_start += 2;
                     } else if pdf_str.as_bytes().get(stream_start) == Some(&b'\n') {
                         stream_start += 1;

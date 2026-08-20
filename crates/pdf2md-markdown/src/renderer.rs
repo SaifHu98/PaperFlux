@@ -1,6 +1,6 @@
-use pdf2md_ast::{Document, DocumentMetadata, InlineNode, ListItem, Node, Section};
 use crate::options::{PageBreakStyle, RenderOptions};
 use crate::table_formatter::format_table;
+use pdf2md_ast::{Document, DocumentMetadata, InlineNode, ListItem, Node, Section};
 
 pub struct MarkdownRenderer {
     pub options: RenderOptions,
@@ -84,16 +84,31 @@ impl MarkdownRenderer {
                 }
                 out.push('\n');
             }
-            Node::List { ordered, start, items, .. } => {
+            Node::List {
+                ordered,
+                start,
+                items,
+                ..
+            } => {
                 self.render_list(*ordered, *start, items, 0, out);
                 out.push('\n');
             }
-            Node::Table { headers, rows, caption, .. } => {
+            Node::Table {
+                headers,
+                rows,
+                caption,
+                ..
+            } => {
                 let table_md = format_table(headers, rows, caption.as_deref(), &self.options);
                 out.push_str(&table_md);
                 out.push('\n');
             }
-            Node::Image { alt_text, src, title, .. } => {
+            Node::Image {
+                alt_text,
+                src,
+                title,
+                ..
+            } => {
                 if let Some(t) = title {
                     out.push_str(&format!("![{}]({} \"{}\")\n\n", alt_text, src, t));
                 } else {
@@ -107,7 +122,11 @@ impl MarkdownRenderer {
                 }
                 out.push_str("\n\n");
             }
-            Node::Caption { target_type: _, text, .. } => {
+            Node::Caption {
+                target_type: _,
+                text,
+                ..
+            } => {
                 out.push('*');
                 for inline in text {
                     self.render_inline(inline, out);
@@ -136,7 +155,14 @@ impl MarkdownRenderer {
         }
     }
 
-    fn render_list(&self, ordered: bool, start: Option<u64>, items: &[ListItem], indent: usize, out: &mut String) {
+    fn render_list(
+        &self,
+        ordered: bool,
+        start: Option<u64>,
+        items: &[ListItem],
+        indent: usize,
+        out: &mut String,
+    ) {
         let mut curr_num = start.unwrap_or(1);
         let indent_str = "  ".repeat(indent);
 
@@ -215,7 +241,10 @@ impl MarkdownRenderer {
 }
 
 fn has_meaningful_metadata(meta: &DocumentMetadata) -> bool {
-    meta.title.is_some() || meta.author.is_some() || meta.subject.is_some() || !meta.keywords.is_empty()
+    meta.title.is_some()
+        || meta.author.is_some()
+        || meta.subject.is_some()
+        || !meta.keywords.is_empty()
 }
 
 fn render_frontmatter(meta: &DocumentMetadata) -> String {

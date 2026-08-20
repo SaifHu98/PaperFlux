@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_ast::geometry::WritingDirection;
 use pdf2md_ast::{CellAlignment, InlineNode, TableRow};
 use pdf2md_text::arabic::context::ArabicProcessingContext;
 use pdf2md_text::arabic::pipeline::ArabicTextPipeline;
 use pdf2md_text::bidi::is_rtl_char;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ArabicTableDiagnostics {
@@ -170,7 +170,9 @@ impl ArabicTableExtractor {
             bbox: None,
         };
 
-        if let Some(pdf2md_ast::Node::Table { headers, rows, .. }) = stitcher.stitch_two_tables(&t1_node, &t2_node) {
+        if let Some(pdf2md_ast::Node::Table { headers, rows, .. }) =
+            stitcher.stitch_two_tables(&t1_node, &t2_node)
+        {
             let (seq_headers, seq_rows, diag) = Self::sequence_table_rtl(&headers, &rows);
             Some((seq_headers, seq_rows, diag))
         } else {
@@ -179,11 +181,7 @@ impl ArabicTableExtractor {
     }
 }
 
-fn format_rtl_gfm_table(
-    headers: &[TableRow],
-    rows: &[TableRow],
-    caption: Option<&str>,
-) -> String {
+fn format_rtl_gfm_table(headers: &[TableRow], rows: &[TableRow], caption: Option<&str>) -> String {
     let mut out = String::new();
 
     if let Some(cap) = caption {
@@ -233,11 +231,7 @@ fn format_rtl_gfm_table(
     out
 }
 
-fn format_rtl_html_table(
-    headers: &[TableRow],
-    rows: &[TableRow],
-    caption: Option<&str>,
-) -> String {
+fn format_rtl_html_table(headers: &[TableRow], rows: &[TableRow], caption: Option<&str>) -> String {
     let mut out = String::new();
     out.push_str("<table dir=\"rtl\">\n");
 

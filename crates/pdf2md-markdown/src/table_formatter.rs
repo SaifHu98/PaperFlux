@@ -1,5 +1,5 @@
-use pdf2md_ast::{CellAlignment, TableCell, TableRow};
 use crate::options::RenderOptions;
+use pdf2md_ast::{CellAlignment, TableCell, TableRow};
 
 pub fn format_table(
     headers: &[TableRow],
@@ -19,11 +19,7 @@ pub fn format_table(
     format_gfm_table(headers, rows, caption)
 }
 
-fn format_gfm_table(
-    headers: &[TableRow],
-    rows: &[TableRow],
-    caption: Option<&str>,
-) -> String {
+fn format_gfm_table(headers: &[TableRow], rows: &[TableRow], caption: Option<&str>) -> String {
     let mut out = String::new();
 
     if let Some(cap) = caption {
@@ -97,11 +93,7 @@ fn format_gfm_table(
     out
 }
 
-fn format_html_table(
-    headers: &[TableRow],
-    rows: &[TableRow],
-    caption: Option<&str>,
-) -> String {
+fn format_html_table(headers: &[TableRow], rows: &[TableRow], caption: Option<&str>) -> String {
     let mut out = String::from("<table>\n");
 
     if let Some(cap) = caption {
@@ -153,10 +145,19 @@ fn format_html_cell(cell: &TableCell, is_header: bool) -> String {
         CellAlignment::None => {}
     }
 
-    format!("      <{}{}>{}</{}>\n", tag, attrs, cell.text_content(), tag)
+    format!(
+        "      <{}{}>{}</{}>\n",
+        tag,
+        attrs,
+        cell.text_content(),
+        tag
+    )
 }
 
 fn escape_gfm_cell(text: &str) -> String {
-    let clean = text.replace('|', "\\|").replace('\n', "<br>").replace('\r', "");
+    let clean = text
+        .replace('|', "\\|")
+        .replace('\n', "<br>")
+        .replace('\r', "");
     clean.trim().to_string()
 }

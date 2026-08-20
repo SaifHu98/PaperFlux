@@ -1,11 +1,11 @@
+use crate::models::{AsyncTaskResponse, ConversionResponse, ErrorResponse, HealthResponse};
+use crate::openapi::ApiDoc;
+use crate::task_manager::TaskManager;
+use pdf2md_core::Converter;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
 use utoipa::OpenApi;
-use pdf2md_core::Converter;
-use crate::models::{AsyncTaskResponse, ConversionResponse, ErrorResponse, HealthResponse};
-use crate::openapi::ApiDoc;
-use crate::task_manager::TaskManager;
 
 pub struct HttpServer {
     pub host: String,
@@ -28,7 +28,10 @@ impl HttpServer {
         let bind_addr = format!("{}:{}", self.host, self.port);
         let listener = TcpListener::bind(&bind_addr)?;
         println!("pdf2md HTTP microservice listening on http://{}", bind_addr);
-        println!("OpenAPI 3.0 docs available at http://{}/api-docs/openapi.json", bind_addr);
+        println!(
+            "OpenAPI 3.0 docs available at http://{}/api-docs/openapi.json",
+            bind_addr
+        );
 
         for stream in listener.incoming() {
             match stream {
@@ -109,15 +112,23 @@ pub fn handle_client(
         }
 
         // 2. GET /api-docs/openapi.json
-        if method == "GET" && (uri.starts_with("/api-docs/openapi.json") || uri.starts_with("/openapi.json")) {
+        if method == "GET"
+            && (uri.starts_with("/api-docs/openapi.json") || uri.starts_with("/openapi.json"))
+        {
             let openapi = ApiDoc::openapi();
-            let body = openapi.to_pretty_json().unwrap_or_else(|_| "{}".to_string());
+            let body = openapi
+                .to_pretty_json()
+                .unwrap_or_else(|_| "{}".to_string());
             return send_response(&mut stream, 200, "OK", "application/json", &body);
         }
 
         // 3. GET /status/{task_id}
         if method == "GET" && uri.starts_with("/status/") {
-            let task_id = uri.trim_start_matches("/status/").split('?').next().unwrap_or("");
+            let task_id = uri
+                .trim_start_matches("/status/")
+                .split('?')
+                .next()
+                .unwrap_or("");
             if let Some(status_res) = task_manager.get_task_status(task_id) {
                 let body = serde_json::to_string(&status_res).unwrap();
                 return send_response(&mut stream, 200, "OK", "application/json", &body);
@@ -164,7 +175,13 @@ pub fn handle_client(
                             error: e.to_string(),
                         };
                         let body = serde_json::to_string(&err).unwrap();
-                        return send_response(&mut stream, 400, "Bad Request", "application/json", &body);
+                        return send_response(
+                            &mut stream,
+                            400,
+                            "Bad Request",
+                            "application/json",
+                            &body,
+                        );
                     }
                 }
             }
@@ -197,5 +214,7 @@ fn send_response(
 }
 
 fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
-    haystack.windows(needle.len()).position(|window| window == needle)
+    haystack
+        .windows(needle.len())
+        .position(|window| window == needle)
 }

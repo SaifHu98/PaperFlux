@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use pdf2md_pdf::elements::RawPage;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CalligraphicScriptType {
@@ -84,7 +84,8 @@ impl CalligraphyDetector {
                 let s2 = &spans[i + 1];
 
                 // Check if spans horizontally overlap significantly but have different vertical baselines
-                let x_overlap = s1.bbox.x_min().max(s2.bbox.x_min()) < s1.bbox.x_max().min(s2.bbox.x_max());
+                let x_overlap =
+                    s1.bbox.x_min().max(s2.bbox.x_min()) < s1.bbox.x_max().min(s2.bbox.x_max());
                 let dy = (s1.bbox.y_min() - s2.bbox.y_min()).abs();
 
                 if x_overlap && dy > 2.0 && dy < s1.font_size * 1.5 {

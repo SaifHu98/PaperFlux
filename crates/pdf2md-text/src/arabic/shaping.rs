@@ -16,12 +16,7 @@ impl ArabicShaper {
             if is_arabic_diacritic(ch) {
                 match diacritic_mode {
                     DiacriticMode::StripHarakat => continue,
-                    DiacriticMode::PreserveShaddaOnly => {
-                        if ch != '\u{0651}' {
-                            // \u0651 is Shadda
-                            continue;
-                        }
-                    }
+                    DiacriticMode::PreserveShaddaOnly if ch != '\u{0651}' => continue,
                     _ => {}
                 }
             }
@@ -75,7 +70,7 @@ impl ArabicShaper {
                 '\u{FE85}' | '\u{FE86}' => out.push('\u{0624}'), // WAW WITH HAMZA
                 '\u{FE87}' | '\u{FE88}' => out.push('\u{0625}'), // ALEF WITH HAMZA BELOW
                 '\u{FE89}' | '\u{FE8A}' | '\u{FE8B}' | '\u{FE8C}' => out.push('\u{0626}'), // YEH WITH HAMZA
-                '\u{FE8D}' | '\u{FE8E}' => out.push('\u{0627}'), // ALEF
+                '\u{FE8D}' | '\u{FE8E}' => out.push('\u{0627}'),                           // ALEF
                 '\u{FE8F}' | '\u{FE90}' | '\u{FE91}' | '\u{FE92}' => out.push('\u{0628}'), // BEH
                 '\u{FE93}' | '\u{FE94}' => out.push('\u{0629}'), // TEH MARBUTA
                 '\u{FE95}' | '\u{FE96}' | '\u{FE97}' | '\u{FE98}' => out.push('\u{062A}'), // TEH

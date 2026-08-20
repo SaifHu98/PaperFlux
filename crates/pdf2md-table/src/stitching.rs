@@ -86,10 +86,12 @@ impl CrossPageTableStitcher {
             // If Table 2 has headers that repeat Table 1's header, ignore h2.
             // If Table 2 has no headers, check if its first data row is accidentally a repeated header row.
             let mut t2_data_rows = r2.clone();
-            if h2.is_empty() && !t2_data_rows.is_empty() && !h1.is_empty() {
-                if self.is_row_header_duplicate(&h1[0], &t2_data_rows[0]) {
-                    t2_data_rows.remove(0);
-                }
+            if h2.is_empty()
+                && !t2_data_rows.is_empty()
+                && !h1.is_empty()
+                && self.is_row_header_duplicate(&h1[0], &t2_data_rows[0])
+            {
+                t2_data_rows.remove(0);
             }
 
             stitched_rows.extend(t2_data_rows);

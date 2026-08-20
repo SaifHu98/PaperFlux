@@ -154,7 +154,10 @@ impl AdobeArabicGlyphMap {
 
 fn decode_single_or_presentation_form(code: u32) -> Option<String> {
     // Check if it's already a base Unicode character
-    if (0x0600..=0x06FF).contains(&code) || (0x0750..=0x077F).contains(&code) || (0x08A0..=0x08FF).contains(&code) {
+    if (0x0600..=0x06FF).contains(&code)
+        || (0x0750..=0x077F).contains(&code)
+        || (0x08A0..=0x08FF).contains(&code)
+    {
         if let Some(ch) = char::from_u32(code) {
             return Some(ch.to_string());
         }
@@ -182,7 +185,11 @@ impl ArabicFontDecoder {
     ) -> String {
         // Stage 1: Check explicit ToUnicode map
         if let Some(mapped) = to_unicode_map.get(&code) {
-            if !mapped.is_empty() && !mapped.chars().all(|c| (0xE000..=0xF8FF).contains(&(c as u32))) {
+            if !mapped.is_empty()
+                && !mapped
+                    .chars()
+                    .all(|c| (0xE000..=0xF8FF).contains(&(c as u32)))
+            {
                 return pdf2md_text::bidi::normalize_arabic_presentation_forms(mapped);
             }
         }
@@ -213,7 +220,9 @@ impl ArabicFontDecoder {
             }
         }
 
-        char::from_u32(code).map(|c| c.to_string()).unwrap_or_default()
+        char::from_u32(code)
+            .map(|c| c.to_string())
+            .unwrap_or_default()
     }
 
     /// PUA heuristic remapping for common Arabic fonts (e.g. Lotus, Traditional Arabic, DecoType)
@@ -276,7 +285,9 @@ impl ArabicCorruptionDetector {
         let words: Vec<&str> = text.split_whitespace().collect();
         let single_arabic_letters = words
             .iter()
-            .filter(|w| w.chars().count() == 1 && pdf2md_text::bidi::is_rtl_char(w.chars().next().unwrap()))
+            .filter(|w| {
+                w.chars().count() == 1 && pdf2md_text::bidi::is_rtl_char(w.chars().next().unwrap())
+            })
             .count();
 
         single_arabic_letters >= 3 && single_arabic_letters > words.len() / 2
@@ -289,6 +300,7 @@ impl ArabicCorruptionDetector {
 
     /// Detects Private Use Area codes leaking into output
     pub fn detect_pua_leakage(text: &str) -> bool {
-        text.chars().any(|c| (0xE000..=0xF8FF).contains(&(c as u32)))
+        text.chars()
+            .any(|c| (0xE000..=0xF8FF).contains(&(c as u32)))
     }
 }

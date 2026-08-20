@@ -62,7 +62,7 @@ impl ImageExtractor {
         format!("{}.{}", safe_name, safe_ext)
     }
 
-    pub fn process_image(&mut self, image: &ImageObject) -> Option<Node> {
+    pub fn process_image(&self, image: &ImageObject) -> Option<Node> {
         if !self.config.enabled {
             return None;
         }

@@ -1,23 +1,116 @@
 use std::sync::Arc;
 use std::time::Instant;
+use rayon::prelude::*;
 use pdf2md_ast::{ConversionDiagnostics, Document, PageDiagnostics, Section};
 use pdf2md_images::{ImageExtractor, ImageExtractorConfig};
 use pdf2md_layout::LayoutEngine;
 use pdf2md_markdown::MarkdownRenderer;
 use pdf2md_ocr::OcrDecisionEngine;
+use pdf2md_pdf::elements::RawPage;
 use pdf2md_pdf::PdfDocument;
 use pdf2md_table::TableDetector;
 use crate::buffer_pool::BufferPool;
 use crate::cache::PageCache;
 use crate::config::Config;
 use crate::error::{ConversionError, ConversionResult};
-use crate::profile::ExecutionProfile;
 use crate::scheduler::AdaptiveScheduler;
 
 pub struct Pipeline {
     config: Config,
     page_cache: Arc<PageCache>,
     pub buffer_pool: Arc<BufferPool>,
+}
+
+struct ProcessedPageOutput {
+    section: Section,
+    diagnostics: PageDiagnostics,
+    is_ocr: bool,
+    image_count: usize,
+    table_count: usize,
+}
+
+fn process_single_page(
+    raw_page: &RawPage,
+    config: &Config,
+    layout_engine: &LayoutEngine,
+    image_extractor: &ImageExtractor,
+    ocr_decision: &OcrDecisionEngine,
+) -> ProcessedPageOutput {
+    let mut section = Section::new(raw_page.page_number);
+    let mut ocr_applied = false;
+
+    // 1. Check if OCR is needed
+    if ocr_decision.should_perform_ocr(raw_page) {
+        if let Some(ocr_prov) = &config.ocr_provider {
+            for img in &raw_page.images {
+                if let Ok(ocr_res) = ocr_prov.recognize(&img.data, None) {
+                    let para = pdf2md_ast::Node::Paragraph {
+                        inlines: vec![pdf2md_ast::InlineNode::Text(ocr_res.text)],
+                        confidence: ocr_res.confidence,
+                        bbox: None,
+                    };
+                    section.elements.push(para);
+                    ocr_applied = true;
+                }
+            }
+        }
+    }
+
+    // 2. Extract images if enabled
+    let mut img_count = 0;
+    for img in &raw_page.images {
+        if let Some(img_node) = image_extractor.process_image(img) {
+            section.elements.push(img_node);
+            img_count += 1;
+        }
+    }
+
+    // 3. Table detection
+    let (detected_tables, consumed_spans) = if config.detect_tables {
+        TableDetector::detect_tables(&raw_page.paths, &raw_page.text_spans)
+    } else {
+        (Vec::new(), Vec::new())
+    };
+    let table_count = detected_tables.len();
+
+    // 4. Filter out table spans from layout text spans
+    let non_table_spans: Vec<pdf2md_pdf::elements::TextSpan> = raw_page
+        .text_spans
+        .iter()
+        .enumerate()
+        .filter(|(idx, _)| !consumed_spans.contains(idx))
+        .map(|(_, s)| s.clone())
+        .collect();
+
+    let mut page_clone = raw_page.clone();
+    page_clone.text_spans = non_table_spans;
+
+    // 5. Layout analysis & Reading order
+    let layout_section = layout_engine.analyze_page(&page_clone);
+
+    // 6. Merge tables and layout elements in visual order
+    section.elements.extend(detected_tables);
+    section.elements.extend(layout_section.elements);
+
+    let diagnostics = PageDiagnostics {
+        page_number: raw_page.page_number,
+        is_scanned: raw_page.is_scanned,
+        ocr_applied,
+        glyph_count: raw_page.text_spans.iter().map(|s| s.text.len()).sum(),
+        image_count: raw_page.images.len(),
+        table_count,
+        detected_language: None,
+        confidence: if ocr_applied { 0.85 } else { 0.96 },
+        reading_order_score: 0.95,
+    };
+
+    ProcessedPageOutput {
+        section,
+        diagnostics,
+        is_ocr: ocr_applied,
+        image_count: img_count,
+        table_count,
+    }
 }
 
 impl Pipeline {
@@ -40,7 +133,7 @@ impl Pipeline {
         let total_pages = pdf_doc.pages.len();
         let mut doc = Document::new(pdf_doc.metadata);
 
-        let mut image_extractor = ImageExtractor::new(ImageExtractorConfig {
+        let image_extractor = ImageExtractor::new(ImageExtractorConfig {
             enabled: self.config.extract_images,
             output_dir: self.config.images_dir.clone(),
             min_width: 32,
@@ -61,109 +154,59 @@ impl Pipeline {
         );
         let plan = scheduler.plan(total_pages, bytes.len());
 
-        let mut page_diagnostics = Vec::new();
+        let layout_start = Instant::now();
+
+        // 3. Process pages (Parallelized with Rayon when plan.concurrency > 1)
+        let processed_pages: Vec<ProcessedPageOutput> = if plan.concurrency > 1 && pdf_doc.pages.len() > 1 {
+            pdf_doc.pages
+                .par_iter()
+                .map(|page| {
+                    process_single_page(
+                        page,
+                        &self.config,
+                        &layout_engine,
+                        &image_extractor,
+                        &ocr_decision,
+                    )
+                })
+                .collect()
+        } else {
+            pdf_doc.pages
+                .iter()
+                .map(|page| {
+                    process_single_page(
+                        page,
+                        &self.config,
+                        &layout_engine,
+                        &image_extractor,
+                        &ocr_decision,
+                    )
+                })
+                .collect()
+        };
+
+        let mut page_diagnostics = Vec::with_capacity(total_pages);
         let mut total_tables = 0;
         let mut total_images = 0;
         let mut ocr_pages_count = 0;
         let mut text_pages_count = 0;
 
-        let layout_start = Instant::now();
-
-        // 3. Process pages
-        for raw_page in &pdf_doc.pages {
-            // Check cache if caching is enabled
+        for (i, page_out) in processed_pages.into_iter().enumerate() {
+            let raw_page = &pdf_doc.pages[i];
             let page_hash = PageCache::compute_page_hash(raw_page);
             if plan.use_cache && self.config.enable_caching {
-                if let Some(cached_section) = self.page_cache.get(page_hash) {
-                    doc.sections.push(cached_section);
-                    text_pages_count += 1;
-                    continue;
-                }
+                self.page_cache.insert(page_hash, page_out.section.clone());
             }
 
-            let mut section = Section::new(raw_page.page_number);
-            let mut ocr_applied = false;
-
-            // Check if OCR is needed
-            if ocr_decision.should_perform_ocr(raw_page) {
-                if let Some(ocr_prov) = &self.config.ocr_provider {
-                    for img in &raw_page.images {
-                        if let Ok(ocr_res) = ocr_prov.recognize(&img.data, None) {
-                            let para = pdf2md_ast::Node::Paragraph {
-                                inlines: vec![pdf2md_ast::InlineNode::Text(ocr_res.text)],
-                                confidence: ocr_res.confidence,
-                                bbox: None,
-                            };
-                            section.elements.push(para);
-                            ocr_applied = true;
-                        }
-                    }
-                }
-                if ocr_applied {
-                    ocr_pages_count += 1;
-                }
+            if page_out.is_ocr {
+                ocr_pages_count += 1;
             } else {
                 text_pages_count += 1;
             }
-
-            // Extract images if enabled
-            for img in &raw_page.images {
-                if let Some(img_node) = image_extractor.process_image(img) {
-                    section.elements.push(img_node);
-                    total_images += 1;
-                }
-            }
-
-            // Table detection
-            let (detected_tables, consumed_spans) = if self.config.detect_tables {
-                TableDetector::detect_tables(&raw_page.paths, &raw_page.text_spans)
-            } else {
-                (Vec::new(), Vec::new())
-            };
-            let table_count = detected_tables.len();
-            total_tables += table_count;
-
-            // Filter out table spans from layout text spans
-            let non_table_spans: Vec<pdf2md_pdf::elements::TextSpan> = raw_page
-                .text_spans
-                .iter()
-                .enumerate()
-                .filter(|(idx, _)| !consumed_spans.contains(idx))
-                .map(|(_, s)| s.clone())
-                .collect();
-
-            let mut page_clone = raw_page.clone();
-            page_clone.text_spans = non_table_spans;
-
-            // Layout analysis & Reading order
-            let layout_section = layout_engine.analyze_page(&page_clone);
-
-            // Merge tables and layout elements in visual order
-            section.elements.extend(detected_tables);
-            section.elements.extend(layout_section.elements);
-
-            if plan.use_cache && self.config.enable_caching {
-                self.page_cache.insert(page_hash, section.clone());
-            }
-
-            page_diagnostics.push(PageDiagnostics {
-                page_number: raw_page.page_number,
-                is_scanned: raw_page.is_scanned,
-                ocr_applied,
-                glyph_count: raw_page.text_spans.iter().map(|s| s.text.len()).sum(),
-                image_count: raw_page.images.len(),
-                table_count,
-                detected_language: None,
-                confidence: if ocr_applied { 0.85 } else { 0.96 },
-                reading_order_score: 0.95,
-            });
-
-            doc.sections.push(section);
-
-            // In LowMemory mode, release memory immediately
-            if self.config.profile == ExecutionProfile::LowMemory {
-                drop(page_clone);
-            }
+            total_images += page_out.image_count;
+            total_tables += page_out.table_count;
+            page_diagnostics.push(page_out.diagnostics);
+            doc.sections.push(page_out.section);
         }
 
         let layout_time_ms = layout_start.elapsed().as_millis() as u64;

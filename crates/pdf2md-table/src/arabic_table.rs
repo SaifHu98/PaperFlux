@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use pdf2md_ast::geometry::WritingDirection;
-use pdf2md_ast::{CellAlignment, InlineNode, TableCell, TableRow};
+use pdf2md_ast::{CellAlignment, InlineNode, TableRow};
 use pdf2md_text::arabic::context::ArabicProcessingContext;
 use pdf2md_text::arabic::pipeline::ArabicTextPipeline;
 use pdf2md_text::bidi::is_rtl_char;

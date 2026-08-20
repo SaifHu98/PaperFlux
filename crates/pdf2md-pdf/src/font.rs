@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone, Default)]
 pub struct FontMap {
@@ -10,6 +11,7 @@ pub struct FontMap {
     pub to_unicode: HashMap<u32, String>,
     pub widths: HashMap<u32, f32>,
     pub default_width: f32,
+    glyph_cache: Arc<RwLock<HashMap<u32, String>>>,
 }
 
 impl FontMap {
@@ -28,12 +30,25 @@ impl FontMap {
             to_unicode: HashMap::new(),
             widths: HashMap::new(),
             default_width: 500.0,
+            glyph_cache: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
-    /// Decodes a glyph code or byte into a UTF-8 character string using multi-stage Arabic font recovery.
+    /// Decodes a glyph code or byte into a UTF-8 character string using multi-stage Arabic font recovery with caching.
     pub fn decode_code(&self, code: u32) -> String {
-        crate::arabic_font_recovery::ArabicFontDecoder::recover_glyph(code, None, &self.to_unicode)
+        if let Ok(cache) = self.glyph_cache.read() {
+            if let Some(decoded) = cache.get(&code) {
+                return decoded.clone();
+            }
+        }
+
+        let decoded = crate::arabic_font_recovery::ArabicFontDecoder::recover_glyph(code, None, &self.to_unicode);
+
+        if let Ok(mut cache) = self.glyph_cache.write() {
+            cache.insert(code, decoded.clone());
+        }
+
+        decoded
     }
 
     /// Parses a ToUnicode CMap stream content into this font map.

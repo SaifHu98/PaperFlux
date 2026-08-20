@@ -13,6 +13,10 @@ impl ArabicWordBoundaryDetector {
             | 'ع' | 'غ' | 'ف' | 'ق' | 'ك' | 'ل' | 'م' | 'ن' | 'ه' | 'ي' | 'ئ' | 'ـ'
             // Persian / Urdu / Kurdish extensions
             | 'پ' | 'چ' | 'گ' | 'ک' | 'ٹ' | 'ں' | 'ے' | 'ہ' | 'ڵ' | 'ۆ' | 'ێ'
+            // Pashto extensions
+            | 'ټ' | 'ځ' | 'څ' | 'ښ' | 'ګ' | 'ڼ' | 'ې' | 'ۍ'
+            // Sindhi extensions
+            | 'ٻ' | 'ٿ' | 'ڀ' | 'ٽ' | 'ڄ' | 'ڃ' | 'ڇ' | 'ڪ' | 'ڳ' | 'ڱ' | 'ڦ' | 'ڻ'
         )
     }
 
@@ -22,6 +26,10 @@ impl ArabicWordBoundaryDetector {
             'ا' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'د' | 'ذ' | 'ر' | 'ز' | 'و' | 'ؤ' | 'ة' | 'ى' | 'ء'
             // Persian / Urdu / Kurdish extensions
             | 'ژ' | 'ڈ' | 'ڑ' | 'ڕ'
+            // Pashto extensions
+            | 'ډ' | 'ړ' | 'ږ' | 'ۀ'
+            // Sindhi extensions
+            | 'ڌ' | 'ڍ' | 'ڊ' | 'ڙ' | 'ڏ'
         )
     }
 

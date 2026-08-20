@@ -6,6 +6,8 @@ pub enum Language {
     Arabic,
     Persian,
     Urdu,
+    Pashto,
+    Sindhi,
     Kurdish,
     Hebrew,
     Turkish,
@@ -41,6 +43,16 @@ impl LanguageClassifier {
     }
 
     fn classify_arabic_family(text: &str) -> (Language, f32) {
+        // Sindhi specific characters: ٻ, ٿ, ڀ, ٽ, ڄ, ڃ, ڇ, ڌ, ڍ, ڊ, ڙ, ڪ, ڳ, ڱ, ڦ, ڻ, ڏ
+        if text.chars().any(|c| matches!(c, 'ٻ' | 'ٿ' | 'ڀ' | 'ٽ' | 'ڄ' | 'ڃ' | 'ڇ' | 'ڌ' | 'ڍ' | 'ڊ' | 'ڙ' | 'ڪ' | 'ڳ' | 'ڱ' | 'ڦ' | 'ڻ' | 'ڏ')) {
+            return (Language::Sindhi, 0.96);
+        }
+
+        // Pashto specific characters: ټ, ځ, څ, ډ, ړ, ږ, ښ, ګ, ڼ, ې, ۍ, ۀ
+        if text.chars().any(|c| matches!(c, 'ټ' | 'ځ' | 'څ' | 'ډ' | 'ړ' | 'ږ' | 'ښ' | 'ګ' | 'ڼ' | 'ې' | 'ۍ' | 'ۀ')) {
+            return (Language::Pashto, 0.96);
+        }
+
         // Kurdish Sorani specific characters: ڵ, ۆ, ێ, ڕ, ە
         if text.chars().any(|c| matches!(c, 'ڵ' | 'ۆ' | 'ێ' | 'ڕ' | 'ە')) {
             return (Language::Kurdish, 0.95);

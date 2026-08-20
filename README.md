@@ -147,6 +147,8 @@ PaperFlux handles multi-script and mixed-language documents:
 | **Standard Arabic** | Tashkeel, Tatweel, Presentation Forms A & B, Honorifics, Abjad lists (`أ-`, `ب-`) |
 | **Persian (Farsi)** | Pe, Che, Zhe, Gaf (`گ چ پ ژ`), Persian digits (`۰۱۲۳۴۵۶۷۸۹`), Half-space (ZWNJ) |
 | **Urdu** | Tte, Ddal, Rre, Bari Ye, Noon Ghunna (`ٹ ڈ ڑ ے ں`), Urdu numerals |
+| **Pashto** | Tteh, Dzal, Tse, Ddal, Rre, Zzhe, Shin, Gaf, Nur, E, Yeh (`ټ ځ څ ډ ړ ږ ښ ګ ڼ ې ۍ ۀ`) |
+| **Sindhi** | Beeh, Theh, Bheh, Tteh, Dyeh, Nyeh, Tcheheh, Dhal, Ddal, Rre, Swash Kaf, Gueh, Peheh, Nnoor (`ٻ ٿ ڀ ٽ ڄ ڃ ڇ ڌ ڍ ڊ ڙ ڪ ڳ ڱ ڦ ڻ ڏ`) |
 | **Kurdish (Sorani)** | Pe, Che, Zhe, Gaf, Lla, O, E, Rra (`ڵ ۆ ێ ڕ ە`) |
 | **Hebrew** | Niqqud, Dagesh, Hebrew alphabet, RTL sentence alignment |
 | **Latin / English** | Typographic ligatures (`fi`, `fl`, `ffi`), code fragments, URLs, emails |

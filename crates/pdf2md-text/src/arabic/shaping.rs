@@ -120,6 +120,25 @@ impl ArabicShaper {
                 '\u{FBAE}' | '\u{FBAF}' => out.push('\u{06D2}'), // YEH BARREE (ے)
                 '\u{FBF6}' | '\u{FBF7}' | '\u{FBF8}' => out.push('\u{06CC}'), // FARSI YEH (ی)
 
+                // Pashto Specific Presentation Forms-A
+                '\u{FB62}' | '\u{FB63}' | '\u{FB64}' | '\u{FB65}' => out.push('\u{067C}'), // TEH WITH RING (ټ)
+                '\u{FB6E}' | '\u{FB6F}' | '\u{FB70}' | '\u{FB71}' => out.push('\u{0681}'), // HAH WITH HAMZA ABOVE (ځ)
+                '\u{FB76}' | '\u{FB77}' | '\u{FB78}' | '\u{FB79}' => out.push('\u{0685}'), // HAH WITH THREE DOTS (څ)
+                '\u{FB84}' | '\u{FB85}' => out.push('\u{0689}'), // DAL WITH RING (ډ)
+                '\u{FB9A}' | '\u{FB9B}' | '\u{FB9C}' | '\u{FB9D}' => out.push('\u{06AB}'), // GAF WITH RING (ګ)
+                '\u{FBE4}' | '\u{FBE5}' | '\u{FBE6}' | '\u{FBE7}' => out.push('\u{06D0}'), // E (ې)
+                '\u{FBFC}' | '\u{FBFD}' | '\u{FBFE}' | '\u{FBFF}' => out.push('\u{06CD}'), // YEH WITH TAIL (ۍ)
+
+                // Sindhi Specific Presentation Forms-A
+                '\u{FB52}' | '\u{FB53}' | '\u{FB54}' | '\u{FB55}' => out.push('\u{067B}'), // BEEH (ٻ)
+                '\u{FB5A}' | '\u{FB5B}' | '\u{FB5C}' | '\u{FB5D}' => out.push('\u{0680}'), // BHEH (ڀ)
+                '\u{FB5E}' | '\u{FB5F}' | '\u{FB60}' | '\u{FB61}' => out.push('\u{067D}'), // TEH WITH FOUR DOTS (ٽ)
+                '\u{FB72}' | '\u{FB73}' | '\u{FB74}' | '\u{FB75}' => out.push('\u{0684}'), // DYEH (ڄ)
+                '\u{FB7E}' | '\u{FB7F}' | '\u{FB80}' | '\u{FB81}' => out.push('\u{0687}'), // TCHEHEH (ڇ)
+                '\u{FB96}' | '\u{FB97}' | '\u{FB98}' | '\u{FB99}' => out.push('\u{06A6}'), // PEHEH (ڦ)
+                '\u{FB9E}' | '\u{FB9F}' | '\u{FBA0}' | '\u{FBA1}' => out.push('\u{06AA}'), // SWASH KAF (ڪ)
+                '\u{FBA2}' | '\u{FBA3}' => out.push('\u{06B3}'), // GUEH (ڳ)
+
                 // Kurdish Sorani specific glyphs
                 '\u{06B5}' => out.push('ڵ'),
                 '\u{06C6}' => out.push('ۆ'),

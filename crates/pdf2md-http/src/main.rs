@@ -7,8 +7,8 @@ use std::sync::Arc;
 #[command(
     name = "pdf2md-http",
     author = "EcoUni Systems <dev@ecouni.org>",
-    version = "0.1.0",
-    about = "Lightweight HTTP worker microservice with OpenAPI 3.0 and async task handling"
+    version = "1.0.0",
+    about = "High-throughput HTTP microservice daemon for PDF to Markdown conversion"
 )]
 struct Args {
     /// Host address to bind

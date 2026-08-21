@@ -27,7 +27,7 @@ use utoipa::OpenApi;
     ),
     info(
         title = "PaperFlux PDF Intelligence Microservice",
-        version = "0.1.0",
+        version = "1.0.0",
         description = "REST API for converting complex multilingual and Arabic-first PDF documents to Markdown with async task handling."
     )
 )]

@@ -10,7 +10,7 @@ use std::process;
 #[command(
     name = "pdf2md",
     author = "EcoUni Systems <dev@ecouni.org>",
-    version = "0.1.0",
+    version = "1.0.0",
     about = "Converts PDF documents into clean, structurally accurate Markdown"
 )]
 struct Cli {
@@ -29,6 +29,10 @@ struct Cli {
     #[arg(short = 'd', long = "dialect", default_value = "gfm")]
     dialect: DialectArg,
 
+    /// Execution profile (fast, balanced, quality)
+    #[arg(long = "profile", default_value = "balanced")]
+    profile: ProfileArg,
+
     /// Extract images embedded in the PDF
     #[arg(long = "extract-images")]
     extract_images: bool,
@@ -41,13 +45,25 @@ struct Cli {
     #[arg(long = "images-dir")]
     images_dir: Option<PathBuf>,
 
+    /// Detect tables (true/false)
+    #[arg(long = "detect-tables", default_missing_value = "true", num_args = 0..=1)]
+    detect_tables: Option<bool>,
+
     /// Disable table detection
     #[arg(long = "no-tables")]
     no_tables: bool,
 
+    /// Parallel multi-page processing
+    #[arg(long = "parallel-pages", default_missing_value = "true", num_args = 0..=1)]
+    parallel_pages: Option<bool>,
+
     /// OCR mode (auto, always, never)
     #[arg(long = "ocr", default_value = "auto")]
     ocr: OcrArg,
+
+    /// OCR provider (auto, tesseract, mock)
+    #[arg(long = "ocr-provider", default_value = "auto")]
+    ocr_provider: String,
 
     /// OCR languages to recognize (e.g. ara+eng, ara, fas, urd)
     #[arg(long = "ocr-lang", default_value = "ara+eng")]
@@ -62,7 +78,7 @@ struct Cli {
     diagnostics_json: Option<PathBuf>,
 
     /// Maximum memory limit in MB
-    #[arg(long = "memory-limit-mb", default_value = "256")]
+    #[arg(long = "memory-limit", alias = "memory-limit-mb", default_value = "256")]
     memory_limit_mb: usize,
 
     /// Maximum number of pages to process
@@ -120,6 +136,14 @@ enum DialectArg {
     Commonmark,
     Gfm,
     Extended,
+}
+
+#[derive(ValueEnum, Clone, Copy, Debug)]
+enum ProfileArg {
+    Fast,
+    Balanced,
+    LowMemory,
+    Quality,
 }
 
 #[derive(ValueEnum, Clone, Copy, Debug)]
@@ -255,13 +279,22 @@ fn main() {
         PageBreakArg::Marker => PageBreakStyle::CustomMarker,
     };
 
+    let profile = match cli.profile {
+        ProfileArg::Fast => pdf2md_core::ExecutionProfile::Fast,
+        ProfileArg::Balanced | ProfileArg::Quality => pdf2md_core::ExecutionProfile::Balanced,
+        ProfileArg::LowMemory => pdf2md_core::ExecutionProfile::LowMemory,
+    };
+
+    let should_detect_tables = cli.detect_tables.unwrap_or(true) && !cli.no_tables;
+
     let mut builder = Config::builder()
+        .profile(profile)
         .dialect(dialect)
         .emit_frontmatter(!cli.no_frontmatter)
         .page_breaks(page_breaks)
         .extract_images(cli.extract_images)
         .extract_vectors(cli.extract_vectors)
-        .detect_tables(!cli.no_tables)
+        .detect_tables(should_detect_tables)
         .ocr_mode(ocr_mode)
         .memory_limit_mb(cli.memory_limit_mb)
         .max_pages(cli.max_pages)
@@ -277,10 +310,13 @@ fn main() {
             &cli.ocr_lang,
         ));
         builder = builder.ocr_provider(prov);
-    } else if !cli.ocr_lang.is_empty() && cli.ocr_lang != "ara+eng" {
+    } else if cli.ocr_provider == "tesseract" || (!cli.ocr_lang.is_empty() && cli.ocr_lang != "ara+eng") {
         let prov = std::sync::Arc::new(pdf2md_ocr::SystemTesseractOCRProvider::with_languages(
             &cli.ocr_lang,
         ));
+        builder = builder.ocr_provider(prov);
+    } else if cli.ocr_provider == "mock" {
+        let prov = std::sync::Arc::new(pdf2md_ocr::MockOCRProvider::new("OCR Recognized Text"));
         builder = builder.ocr_provider(prov);
     }
 

@@ -461,7 +461,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "pdf2md-ast"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -469,7 +469,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-cli"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "pdf2md-ast",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "log",
  "pdf2md-ast",
@@ -501,7 +501,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-eval"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "log",
  "pdf2md-core",
@@ -514,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-http"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "pdf2md-ast",
@@ -527,7 +527,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-images"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "image",
  "log",
@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-layout"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "pdf2md-ast",
  "pdf2md-pdf",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-markdown"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "pdf2md-ast",
  "serde",
@@ -557,7 +557,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-ocr"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "log",
  "pdf2md-ast",
@@ -569,7 +569,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-pdf"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "flate2",
  "log",
@@ -582,7 +582,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-python"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "pdf2md-ast",
  "pdf2md-core",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-table"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "pdf2md-ast",
  "pdf2md-pdf",
@@ -603,7 +603,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-text"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "pdf2md-ast",
  "serde",
@@ -614,7 +614,7 @@ dependencies = [
 
 [[package]]
 name = "pdf2md-wasm"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "js-sys",
  "pdf2md-ast",

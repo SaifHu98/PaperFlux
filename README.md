@@ -6,6 +6,7 @@
 [![Tests](https://img.shields.io/badge/Tests-177%20passed%2C%200%20failed-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
 [![Multi-Page Tables](https://img.shields.io/badge/Multi--Page%20Tables-Supported-success.svg?style=flat-square)](https://github.com/SaifHu98/PaperFlux)
 [![Rust Version](https://img.shields.io/badge/rust-1.80%2B-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.21%2B-00ADD8.svg?style=flat-square&logo=go)](https://golang.org/)
 [![Python](https://img.shields.io/badge/Python-3.8%2B%20%7C%20PyO3-blue.svg?style=flat-square&logo=python)](https://pypi.org/project/paperflux/)
 [![WebAssembly](https://img.shields.io/badge/WASM-Browser%20Worker-blueviolet.svg?style=flat-square&logo=webassembly)](https://webassembly.org/)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-blue.svg?style=flat-square&logo=php)](https://www.php.net/)
@@ -427,6 +428,47 @@ curl -X POST http://localhost:8080/convert \
 
 ---
 
+### 6. Go Package (`github.com/SaifHu98/paperflux-go`)
+
+Install the Go package:
+
+```bash
+go get github.com/SaifHu98/paperflux-go
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	paperflux "github.com/SaifHu98/paperflux-go"
+)
+
+func main() {
+	pdfBytes, err := os.ReadFile("academic_report.pdf")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := paperflux.Convert(pdfBytes, paperflux.Config{
+		Dialect:        "gfm",
+		DetectTables:   true,
+		ExtractVectors: true,
+	})
+	if err != nil {
+		log.Fatalf("Conversion error: %v", err)
+	}
+
+	fmt.Println(result.Markdown)
+	fmt.Printf("Pages: %d | Confidence: %.2f\n", result.TotalPages, result.Confidence)
+}
+```
+
+---
+
 ## 🏛️ Modular Workspace Architecture
 
 ```
@@ -438,12 +480,13 @@ PaperFlux/
 │   ├── pdf2md-layout       # Spatial indexing, ArabicReadingOrderEngine, ArabicParagraphReconstructor
 │   ├── pdf2md-table        # Vector lattice grid, ArabicTableExtractor, RTL GFM & HTML fallbacks
 │   ├── pdf2md-ocr          # Pluggable OCRProvider, ArabicOcrDecisionEngine, Stream Fusion
-│   ├── pdf2md-images       # Raster processing, dimension guards, path sanitization
+│   ├── pdf2md-images       # Raster processing, SVG vector chart serialization, dimension guards
 │   ├── pdf2md-markdown     # AST to Markdown serializer (CommonMark, GFM, Extended)
 │   ├── pdf2md-core         # Orchestration pipeline, ArabicQualityScore, Scheduler, PageCache
 │   ├── pdf2md-cli          # Native CLI binary (`pdf2md`)
 │   ├── pdf2md-wasm         # WebAssembly bindings for browser execution
 │   └── pdf2md-http         # High-throughput HTTP microservice daemon
+├── go/                     # Go wrapper package (`github.com/SaifHu98/paperflux-go`)
 ├── php/                    # Composer package (`ecouni/pdf2md`) with ProcessRunner & Laravel integration
 └── docs/
     ├── SECURITY.md         # STRIDE Threat Model & Resource Limits
@@ -474,6 +517,7 @@ PaperFlux/
 ## 🗺️ Roadmap & Status
 
 ### ✅ Implemented
+* [x] **Go Wrapper Package (`github.com/SaifHu98/paperflux-go`)**: High-performance Go client with in-memory byte slice, stream, and disk file conversion support.
 * [x] **Embedded Vector Chart & Schematic Diagram Extraction to SVG**: Extracts vector paths, Bézier curves, and embedded text labels into standalone SVG assets.
 * [x] **Real-World Multi-Page PDF Fixture Corpus on Disk**: 10 diverse multi-page PDF documents in `tests/fixtures/` with matching verified `.md.gold` ground-truth standards and automated latency benchmark coverage.
 * [x] **Statistical Font Clustering & Nastaliq Detection**: Automated detection of cascading diagonal writing baselines, bounding box overlap density, and automated 300 DPI OCR escalation for Nastaliq and Diwani calligraphic scripts.
@@ -497,7 +541,6 @@ PaperFlux/
 * [ ] Interactive web demo playground for live Arabic PDF conversion.
 
 ### 📋 Planned
-* [ ] Go wrapper package via CGo / WebAssembly.
 * [ ] Automated CER/WER ground-truth evaluation diff engine.
 
 ---

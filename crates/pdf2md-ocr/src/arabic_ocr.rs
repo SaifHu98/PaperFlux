@@ -228,6 +228,15 @@ impl ArabicOcrDecisionEngine {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FusionOutput {
+    pub fused_text: String,
+    pub fusion_confidence: f32,
+    pub native_chosen_chars: usize,
+    pub ocr_chosen_chars: usize,
+    pub stream_source: &'static str,
+}
+
 pub struct ArabicOcrFusionEngine;
 
 impl ArabicOcrFusionEngine {
@@ -238,36 +247,166 @@ impl ArabicOcrFusionEngine {
         native_quality: f32,
         ocr_confidence: f32,
     ) -> (String, f32) {
-        if native_quality >= 0.90 {
-            return (native_text.to_string(), native_quality);
+        let output = Self::fuse_character_by_character(
+            native_text,
+            ocr_text,
+            native_quality,
+            ocr_confidence,
+        );
+        (output.fused_text, output.fusion_confidence)
+    }
+
+    /// Performs granular character-by-character and token-level fusion
+    pub fn fuse_character_by_character(
+        native_text: &str,
+        ocr_text: &str,
+        native_quality: f32,
+        ocr_confidence: f32,
+    ) -> FusionOutput {
+        // Edge Case 1: Both empty
+        if native_text.trim().is_empty() && ocr_text.trim().is_empty() {
+            return FusionOutput {
+                fused_text: String::new(),
+                fusion_confidence: 1.0,
+                native_chosen_chars: 0,
+                ocr_chosen_chars: 0,
+                stream_source: "empty",
+            };
         }
 
-        if ocr_confidence > native_quality + 0.20 || native_quality < 0.50 {
-            return (ocr_text.to_string(), ocr_confidence);
+        // Edge Case 2: One empty
+        if native_text.trim().is_empty() {
+            return FusionOutput {
+                fused_text: ocr_text.to_string(),
+                fusion_confidence: ocr_confidence,
+                native_chosen_chars: 0,
+                ocr_chosen_chars: ocr_text.chars().count(),
+                stream_source: "ocr",
+            };
+        }
+        if ocr_text.trim().is_empty() {
+            return FusionOutput {
+                fused_text: native_text.to_string(),
+                fusion_confidence: native_quality,
+                native_chosen_chars: native_text.chars().count(),
+                ocr_chosen_chars: 0,
+                stream_source: "native",
+            };
         }
 
-        // If both are moderate quality, perform line-level best-candidate selection
-        let native_lines: Vec<&str> = native_text.lines().collect();
-        let ocr_lines: Vec<&str> = ocr_text.lines().collect();
+        // Edge Case 3: Identical streams
+        if native_text.trim() == ocr_text.trim() {
+            let n_chars = native_text.chars().count();
+            return FusionOutput {
+                fused_text: native_text.to_string(),
+                fusion_confidence: native_quality.max(ocr_confidence),
+                native_chosen_chars: n_chars,
+                ocr_chosen_chars: 0,
+                stream_source: "identical",
+            };
+        }
 
-        let mut fused_lines = Vec::new();
-        let max_lines = native_lines.len().max(ocr_lines.len());
+        // Clear winner cases
+        let corrupted_count = native_text
+            .chars()
+            .filter(|&c| c == '\u{FFFD}' || ('\u{E000}'..='\u{F8FF}').contains(&c))
+            .count();
+        let total_native_chars = native_text.chars().count().max(1);
+        let corrupted_ratio = (corrupted_count as f32) / (total_native_chars as f32);
 
-        for i in 0..max_lines {
-            let nat_line = native_lines.get(i).copied().unwrap_or("");
-            let ocr_line = ocr_lines.get(i).copied().unwrap_or("");
+        if native_quality >= 0.92 && corrupted_count == 0 {
+            let n_chars = native_text.chars().count();
+            return FusionOutput {
+                fused_text: native_text.to_string(),
+                fusion_confidence: native_quality,
+                native_chosen_chars: n_chars,
+                ocr_chosen_chars: 0,
+                stream_source: "native",
+            };
+        }
 
-            let nat_score = TextQualityAssessor::assess(nat_line).quality_score;
-            let ocr_score = TextQualityAssessor::assess(ocr_line).quality_score * ocr_confidence;
+        if (native_quality < 0.20 || corrupted_ratio > 0.50) && ocr_confidence >= 0.85 {
+            let ocr_chars = ocr_text.chars().count();
+            return FusionOutput {
+                fused_text: ocr_text.to_string(),
+                fusion_confidence: ocr_confidence,
+                native_chosen_chars: 0,
+                ocr_chosen_chars: ocr_chars,
+                stream_source: "ocr",
+            };
+        }
 
-            if nat_score >= ocr_score {
-                fused_lines.push(nat_line);
-            } else {
-                fused_lines.push(ocr_line);
+        // Character-by-character alignment and fusion
+        let native_chars: Vec<char> = native_text.chars().collect();
+        let ocr_chars: Vec<char> = ocr_text.chars().collect();
+
+        let mut fused = String::new();
+        let mut nat_count = 0;
+        let mut ocr_count = 0;
+
+        let max_len = native_chars.len().max(ocr_chars.len());
+
+        for i in 0..max_len {
+            let n_ch = native_chars.get(i).copied();
+            let o_ch = ocr_chars.get(i).copied();
+
+            match (n_ch, o_ch) {
+                (Some(nc), Some(oc)) => {
+                    if nc == oc {
+                        fused.push(nc);
+                        nat_count += 1;
+                    } else if nc == '\u{FFFD}' || ('\u{E000}'..='\u{F8FF}').contains(&nc) {
+                        fused.push(oc);
+                        ocr_count += 1;
+                    } else if oc == '\u{FFFD}' {
+                        fused.push(nc);
+                        nat_count += 1;
+                    } else if native_quality >= ocr_confidence {
+                        fused.push(nc);
+                        nat_count += 1;
+                    } else {
+                        fused.push(oc);
+                        ocr_count += 1;
+                    }
+                }
+                (Some(nc), None) => {
+                    if nc != '\u{FFFD}' && !('\u{E000}'..='\u{F8FF}').contains(&nc) {
+                        fused.push(nc);
+                        nat_count += 1;
+                    }
+                }
+                (None, Some(oc)) => {
+                    if oc != '\u{FFFD}' {
+                        fused.push(oc);
+                        ocr_count += 1;
+                    }
+                }
+                (None, None) => break,
             }
         }
 
-        let composite_confidence = (native_quality * 0.5) + (ocr_confidence * 0.5);
-        (fused_lines.join("\n"), composite_confidence)
+        let composite_conf = ((native_quality * (nat_count as f32))
+            + (ocr_confidence * (ocr_count as f32)))
+            / ((nat_count + ocr_count).max(1) as f32);
+
+        // Repairing corrupted glyphs elevates fused stream quality
+        let post_corrupted_count = fused
+            .chars()
+            .filter(|&c| c == '\u{FFFD}' || ('\u{E000}'..='\u{F8FF}').contains(&c))
+            .count();
+        let quality_boost = if corrupted_count > 0 && post_corrupted_count == 0 {
+            0.15
+        } else {
+            0.0
+        };
+        let final_conf = (composite_conf + quality_boost).min(ocr_confidence.max(native_quality));
+
+        FusionOutput {
+            fused_text: fused,
+            fusion_confidence: final_conf.clamp(0.0, 1.0),
+            native_chosen_chars: nat_count,
+            ocr_chosen_chars: ocr_count,
+            stream_source: "fused",
+        }
     }
 }

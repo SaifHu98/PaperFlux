@@ -42,6 +42,8 @@ pub struct ConfidenceScores {
     pub layout_confidence: f32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stitch_confidence: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fusion_confidence: Option<f32>,
 }
 
 impl Default for ConfidenceScores {
@@ -55,6 +57,7 @@ impl Default for ConfidenceScores {
             language_confidence: 1.0,
             layout_confidence: 1.0,
             stitch_confidence: None,
+            fusion_confidence: None,
         }
     }
 }
@@ -70,6 +73,8 @@ pub struct PageDiagnostics {
     pub detected_language: Option<String>,
     pub confidence: f32,
     pub reading_order_score: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fusion_confidence: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

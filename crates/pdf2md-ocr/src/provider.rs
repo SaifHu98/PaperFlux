@@ -70,12 +70,25 @@ pub struct MockOCRProvider {
     pub confidence: f32,
 }
 
-impl Default for MockOCRProvider {
-    fn default() -> Self {
+impl MockOCRProvider {
+    pub fn new(text: impl Into<String>) -> Self {
         Self {
-            dummy_text: "Mock OCR extracted text".to_string(),
+            dummy_text: text.into(),
             confidence: 0.95,
         }
+    }
+
+    pub fn with_confidence(text: impl Into<String>, confidence: f32) -> Self {
+        Self {
+            dummy_text: text.into(),
+            confidence,
+        }
+    }
+}
+
+impl Default for MockOCRProvider {
+    fn default() -> Self {
+        Self::new("Mock OCR extracted text")
     }
 }
 

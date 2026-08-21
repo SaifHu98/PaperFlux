@@ -112,4 +112,19 @@ impl OcrFusionEngine {
             (native_text.to_string(), native_quality, "native")
         }
     }
+
+    /// Performs granular character-by-character stream fusion
+    pub fn fuse_character_by_character(
+        native_text: &str,
+        native_quality: f32,
+        ocr_text: &str,
+        ocr_confidence: f32,
+    ) -> crate::arabic_ocr::FusionOutput {
+        crate::arabic_ocr::ArabicOcrFusionEngine::fuse_character_by_character(
+            native_text,
+            ocr_text,
+            native_quality,
+            ocr_confidence,
+        )
+    }
 }

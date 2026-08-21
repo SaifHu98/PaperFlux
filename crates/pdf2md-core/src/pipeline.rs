@@ -150,6 +150,7 @@ fn process_single_page(
         detected_language: None,
         confidence: if ocr_applied { 0.85 } else { 0.96 },
         reading_order_score: 0.95,
+        fusion_confidence: if ocr_applied { Some(0.90) } else { None },
     };
 
     ProcessedPageOutput {

@@ -238,10 +238,11 @@ pdf2md document.pdf -o output.md
 # Pipeline conversion streaming via STDIN
 cat document.pdf | pdf2md - > output.md
 
-# Conversion with image extraction and telemetry export
+# Conversion with image and vector chart SVG extraction
 pdf2md manual.pdf -o manual.md \
   --dialect gfm \
   --extract-images \
+  --extract-vectors \
   --images-dir ./assets \
   --diagnostics-json ./telemetry.json
 ```
@@ -473,6 +474,7 @@ PaperFlux/
 ## 🗺️ Roadmap & Status
 
 ### ✅ Implemented
+* [x] **Embedded Vector Chart & Schematic Diagram Extraction to SVG**: Extracts vector paths, Bézier curves, and embedded text labels into standalone SVG assets.
 * [x] **Real-World Multi-Page PDF Fixture Corpus on Disk**: 10 diverse multi-page PDF documents in `tests/fixtures/` with matching verified `.md.gold` ground-truth standards and automated latency benchmark coverage.
 * [x] **Statistical Font Clustering & Nastaliq Detection**: Automated detection of cascading diagonal writing baselines, bounding box overlap density, and automated 300 DPI OCR escalation for Nastaliq and Diwani calligraphic scripts.
 * [x] **Multi-Page Table Stitching**: Native detection and merging of tables across page boundaries with header deduplication and RTL alignment.
@@ -492,7 +494,7 @@ PaperFlux/
 * [ ] Complex multi-layer mathematical formula tree reconstruction.
 
 ### 🚧 In Progress
-* [ ] Embedded vector chart and schematic diagram extraction to SVG.
+* [ ] Interactive web demo playground for live Arabic PDF conversion.
 
 ### 📋 Planned
 * [ ] Go wrapper package via CGo / WebAssembly.

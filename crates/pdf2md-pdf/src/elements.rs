@@ -56,14 +56,33 @@ pub struct Glyph {
     pub font_size: f32,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum PathCommand {
+    MoveTo(Point),
+    LineTo(Point),
+    CurveTo { p1: Point, p2: Point, p3: Point },
+    Rectangle(Rect),
+    ClosePath,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathSegment {
     pub rect: Option<Rect>,
     pub points: Vec<Point>,
+    pub commands: Vec<PathCommand>,
     pub is_stroke: bool,
     pub is_fill: bool,
     pub stroke_width: f32,
     pub color: Color,
+    pub fill_color: Option<Color>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VectorGraphic {
+    pub id: String,
+    pub bbox: BoundingBox,
+    pub paths: Vec<PathSegment>,
+    pub texts: Vec<TextSpan>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,6 +103,7 @@ pub struct RawPage {
     pub rotation: i32,
     pub text_spans: Vec<TextSpan>,
     pub paths: Vec<PathSegment>,
+    pub vector_graphics: Vec<VectorGraphic>,
     pub images: Vec<ImageObject>,
     pub has_usable_text: bool,
     pub is_scanned: bool,
@@ -98,6 +118,7 @@ impl RawPage {
             rotation: 0,
             text_spans: Vec::new(),
             paths: Vec::new(),
+            vector_graphics: Vec::new(),
             images: Vec::new(),
             has_usable_text: false,
             is_scanned: false,

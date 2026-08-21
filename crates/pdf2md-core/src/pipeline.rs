@@ -70,11 +70,45 @@ fn process_single_page(
         }
     }
 
-    // 2. Extract images if enabled
+    // 2. Extract images and vector charts if enabled
     let mut img_count = 0;
     for img in &raw_page.images {
         if let Some(img_node) = image_extractor.process_image(img) {
             section.elements.push(img_node);
+            img_count += 1;
+        }
+    }
+
+    if config.extract_vectors && !raw_page.paths.is_empty() {
+        let vector_charts = pdf2md_images::SvgSerializer::cluster_vector_objects(
+            &raw_page.paths,
+            &raw_page.text_spans,
+        );
+
+        for (idx, chart) in vector_charts.iter().enumerate() {
+            let svg_content = pdf2md_images::SvgSerializer::serialize_vector_graphic(chart);
+            let filename = format!("vector_chart_p{}_{}.svg", raw_page.page_number, idx + 1);
+
+            let src = if let Some(dir) = &config.images_dir {
+                let file_path = dir.join(&filename);
+                if let Some(parent) = file_path.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let _ = std::fs::write(&file_path, svg_content.as_bytes());
+                file_path.to_string_lossy().to_string()
+            } else {
+                filename
+            };
+
+            section.elements.push(pdf2md_ast::Node::Image {
+                alt_text: "Vector Chart / Schematic Diagram".to_string(),
+                src,
+                title: None,
+                width: Some(chart.bbox.width),
+                height: Some(chart.bbox.height),
+                bbox: Some(chart.bbox),
+                mime_type: Some("image/svg+xml".to_string()),
+            });
             img_count += 1;
         }
     }

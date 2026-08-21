@@ -12,6 +12,7 @@ pub struct Config {
     pub emit_frontmatter: bool,
     pub page_breaks: PageBreakStyle,
     pub extract_images: bool,
+    pub extract_vectors: bool,
     pub images_dir: Option<PathBuf>,
     pub detect_tables: bool,
     pub paragraph_gap_threshold: Option<f32>,
@@ -33,6 +34,7 @@ impl Default for Config {
             emit_frontmatter: true,
             page_breaks: PageBreakStyle::HtmlComment,
             extract_images: false,
+            extract_vectors: false,
             images_dir: None,
             detect_tables: true,
             paragraph_gap_threshold: None,
@@ -88,6 +90,11 @@ impl ConfigBuilder {
 
     pub fn extract_images(mut self, extract: bool) -> Self {
         self.config.extract_images = extract;
+        self
+    }
+
+    pub fn extract_vectors(mut self, extract: bool) -> Self {
+        self.config.extract_vectors = extract;
         self
     }
 

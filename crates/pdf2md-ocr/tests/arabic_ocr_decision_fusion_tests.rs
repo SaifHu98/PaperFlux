@@ -35,6 +35,7 @@ fn test_arabic_clean_digital_page_skips_ocr() {
         rotation: 0,
         text_spans: spans,
         paths: Vec::new(),
+        vector_graphics: Vec::new(),
         images: Vec::new(),
         has_usable_text: true,
         is_scanned: false,
@@ -67,6 +68,7 @@ fn test_arabic_scanned_image_page_triggers_ocr() {
         rotation: 0,
         text_spans: Vec::new(), // No native text spans -> Scanned
         paths: Vec::new(),
+        vector_graphics: Vec::new(),
         images,
         has_usable_text: false,
         is_scanned: true,
@@ -100,6 +102,7 @@ fn test_arabic_corrupted_font_stream_triggers_ocr() {
         rotation: 0,
         text_spans: corrupted_spans,
         paths: Vec::new(),
+        vector_graphics: Vec::new(),
         images: Vec::new(),
         has_usable_text: true,
         is_scanned: false,

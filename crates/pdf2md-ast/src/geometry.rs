@@ -278,4 +278,11 @@ impl Color {
     pub fn is_dark(&self) -> bool {
         (0.299 * self.r + 0.587 * self.g + 0.114 * self.b) < 0.5
     }
+
+    pub fn to_hex(&self) -> String {
+        let r = (self.r.clamp(0.0, 1.0) * 255.0).round() as u8;
+        let g = (self.g.clamp(0.0, 1.0) * 255.0).round() as u8;
+        let b = (self.b.clamp(0.0, 1.0) * 255.0).round() as u8;
+        format!("#{:02x}{:02x}{:02x}", r, g, b)
+    }
 }

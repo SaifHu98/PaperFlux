@@ -1,4 +1,4 @@
-use crate::elements::{GraphicsState, PathSegment, RawPage, TextSpan};
+use crate::elements::{GraphicsState, PathCommand, PathSegment, RawPage, TextSpan};
 use crate::font::FontMap;
 use pdf2md_ast::geometry::{BoundingBox, Color, Matrix, Point, Rect};
 use std::collections::HashMap;
@@ -8,6 +8,7 @@ pub struct ContentStreamParser<'a> {
     state_stack: Vec<GraphicsState>,
     current_state: GraphicsState,
     current_path: Vec<Point>,
+    current_commands: Vec<PathCommand>,
     page_height: f32,
 }
 
@@ -18,6 +19,7 @@ impl<'a> ContentStreamParser<'a> {
             state_stack: Vec::new(),
             current_state: GraphicsState::default(),
             current_path: Vec::new(),
+            current_commands: Vec::new(),
             page_height,
         }
     }
@@ -184,10 +186,12 @@ impl<'a> ContentStreamParser<'a> {
                                 Point::new(rect.x, rect.y),
                                 Point::new(rect.x + rect.width, rect.y + rect.height),
                             ],
+                            commands: vec![PathCommand::Rectangle(rect)],
                             is_stroke: true,
                             is_fill: false,
                             stroke_width: self.current_state.line_width,
                             color: self.current_state.stroke_color,
+                            fill_color: Some(self.current_state.fill_color),
                         });
                     }
                 }
@@ -198,6 +202,7 @@ impl<'a> ContentStreamParser<'a> {
                         let p = self.current_state.ctm.transform_point(Point::new(x, y));
                         let top_p = Point::new(p.x, (self.page_height - p.y).max(0.0));
                         self.current_path = vec![top_p];
+                        self.current_commands = vec![PathCommand::MoveTo(top_p)];
                     }
                 }
             }
@@ -207,11 +212,83 @@ impl<'a> ContentStreamParser<'a> {
                         let p = self.current_state.ctm.transform_point(Point::new(x, y));
                         let top_p = Point::new(p.x, (self.page_height - p.y).max(0.0));
                         self.current_path.push(top_p);
+                        self.current_commands.push(PathCommand::LineTo(top_p));
                     }
                 }
             }
+            "c" => {
+                if args.len() >= 6 {
+                    if let (Ok(x1), Ok(y1), Ok(x2), Ok(y2), Ok(x3), Ok(y3)) = (
+                        args[0].parse::<f32>(),
+                        args[1].parse::<f32>(),
+                        args[2].parse::<f32>(),
+                        args[3].parse::<f32>(),
+                        args[4].parse::<f32>(),
+                        args[5].parse::<f32>(),
+                    ) {
+                        let p1 = self.current_state.ctm.transform_point(Point::new(x1, y1));
+                        let p2 = self.current_state.ctm.transform_point(Point::new(x2, y2));
+                        let p3 = self.current_state.ctm.transform_point(Point::new(x3, y3));
+                        let top_p1 = Point::new(p1.x, (self.page_height - p1.y).max(0.0));
+                        let top_p2 = Point::new(p2.x, (self.page_height - p2.y).max(0.0));
+                        let top_p3 = Point::new(p3.x, (self.page_height - p3.y).max(0.0));
+                        self.current_path.push(top_p3);
+                        self.current_commands.push(PathCommand::CurveTo {
+                            p1: top_p1,
+                            p2: top_p2,
+                            p3: top_p3,
+                        });
+                    }
+                }
+            }
+            "v" => {
+                if args.len() >= 4 {
+                    if let (Ok(x2), Ok(y2), Ok(x3), Ok(y3)) = (
+                        args[0].parse::<f32>(),
+                        args[1].parse::<f32>(),
+                        args[2].parse::<f32>(),
+                        args[3].parse::<f32>(),
+                    ) {
+                        let p1 = self.current_path.last().copied().unwrap_or(Point::ZERO);
+                        let p2 = self.current_state.ctm.transform_point(Point::new(x2, y2));
+                        let p3 = self.current_state.ctm.transform_point(Point::new(x3, y3));
+                        let top_p2 = Point::new(p2.x, (self.page_height - p2.y).max(0.0));
+                        let top_p3 = Point::new(p3.x, (self.page_height - p3.y).max(0.0));
+                        self.current_path.push(top_p3);
+                        self.current_commands.push(PathCommand::CurveTo {
+                            p1,
+                            p2: top_p2,
+                            p3: top_p3,
+                        });
+                    }
+                }
+            }
+            "y" => {
+                if args.len() >= 4 {
+                    if let (Ok(x1), Ok(y1), Ok(x3), Ok(y3)) = (
+                        args[0].parse::<f32>(),
+                        args[1].parse::<f32>(),
+                        args[2].parse::<f32>(),
+                        args[3].parse::<f32>(),
+                    ) {
+                        let p1 = self.current_state.ctm.transform_point(Point::new(x1, y1));
+                        let p3 = self.current_state.ctm.transform_point(Point::new(x3, y3));
+                        let top_p1 = Point::new(p1.x, (self.page_height - p1.y).max(0.0));
+                        let top_p3 = Point::new(p3.x, (self.page_height - p3.y).max(0.0));
+                        self.current_path.push(top_p3);
+                        self.current_commands.push(PathCommand::CurveTo {
+                            p1: top_p1,
+                            p2: top_p3,
+                            p3: top_p3,
+                        });
+                    }
+                }
+            }
+            "h" => {
+                self.current_commands.push(PathCommand::ClosePath);
+            }
             "S" | "s" | "f" | "F" | "f*" | "B" | "B*" | "b" | "b*" => {
-                if self.current_path.len() >= 2 {
+                if !self.current_path.is_empty() || !self.current_commands.is_empty() {
                     let is_stroke = op.contains('S')
                         || op.contains('s')
                         || op.contains('B')
@@ -223,17 +300,20 @@ impl<'a> ContentStreamParser<'a> {
                     page.paths.push(PathSegment {
                         rect: None,
                         points: self.current_path.clone(),
+                        commands: self.current_commands.clone(),
                         is_stroke,
                         is_fill,
                         stroke_width: self.current_state.line_width,
-                        color: if is_fill {
-                            self.current_state.fill_color
+                        color: self.current_state.stroke_color,
+                        fill_color: if is_fill {
+                            Some(self.current_state.fill_color)
                         } else {
-                            self.current_state.stroke_color
+                            None
                         },
                     });
                 }
                 self.current_path.clear();
+                self.current_commands.clear();
             }
             "rg" | "k" | "g" => {
                 // Set fill color

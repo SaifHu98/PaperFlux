@@ -29,6 +29,10 @@ struct Cli {
     #[arg(long = "extract-images")]
     extract_images: bool,
 
+    /// Extract vector charts and schematic diagrams to SVG
+    #[arg(long = "extract-vectors")]
+    extract_vectors: bool,
+
     /// Directory where extracted images will be saved
     #[arg(long = "images-dir")]
     images_dir: Option<PathBuf>,
@@ -142,6 +146,7 @@ fn main() {
         .emit_frontmatter(!cli.no_frontmatter)
         .page_breaks(page_breaks)
         .extract_images(cli.extract_images)
+        .extract_vectors(cli.extract_vectors)
         .detect_tables(!cli.no_tables)
         .ocr_mode(ocr_mode)
         .memory_limit_mb(cli.memory_limit_mb)

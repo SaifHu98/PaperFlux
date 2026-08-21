@@ -164,3 +164,50 @@ fn test_end_to_end_statistical_paragraph_boundary_detection() {
         para_count
     );
 }
+
+#[test]
+fn test_end_to_end_vector_chart_extraction_to_svg() {
+    use std::fs;
+
+    let stream = "BT\n/F1 14 Tf\n100 450 Td\n(System Architecture Diagram) Tj\nET\n0 0 1 rg\n100 400 200 120 re f\n";
+    let stream_len = stream.len();
+
+    let pdf_bytes = format!(
+        "%PDF-1.4\n\
+        1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n\
+        2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n\
+        3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>\nendobj\n\
+        4 0 obj\n<< /Length {} >>\nstream\n{}\nendstream\nendobj\n\
+        xref\n0 5\n0000000000 65535 f \n\
+        trailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n300\n%%EOF\n",
+        stream_len, stream
+    ).into_bytes();
+
+    let temp_dir = std::env::temp_dir().join("pdf2md_test_vector_svg");
+    let _ = fs::create_dir_all(&temp_dir);
+
+    let config = Config::builder()
+        .extract_vectors(true)
+        .images_dir(temp_dir.clone())
+        .build();
+
+    let converter = Converter::new(config);
+    let result = converter
+        .convert_bytes(&pdf_bytes)
+        .expect("Vector chart conversion should succeed");
+
+    assert!(result.markdown.contains("vector_chart_p1_1.svg"));
+
+    let svg_path = temp_dir.join("vector_chart_p1_1.svg");
+    assert!(
+        svg_path.exists(),
+        "SVG file should be written to images_dir"
+    );
+
+    let svg_content = fs::read_to_string(&svg_path).unwrap();
+    assert!(svg_content.contains("<svg"));
+    assert!(svg_content.contains("<rect"));
+    assert!(svg_content.contains("System Architecture Diagram"));
+
+    let _ = fs::remove_dir_all(&temp_dir);
+}

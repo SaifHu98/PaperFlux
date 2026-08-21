@@ -165,19 +165,42 @@ pub fn process_bidi_text(input: &str) -> String {
         return input.to_string();
     }
 
-    // Check if input was stored in visual reversed order (final presentation form first)
-    let first_rtl = input.chars().find(|c| is_rtl_char(*c));
-    let last_rtl = input.chars().rev().find(|c| is_rtl_char(*c));
+    if input.contains(' ') {
+        let processed_words: Vec<String> = input.split(' ').map(process_bidi_token).collect();
+        return processed_words.join(" ");
+    }
 
-    let is_visual_reversed = match (first_rtl, last_rtl) {
-        (Some(f), Some(l)) => is_final_presentation_form(f) && is_initial_presentation_form(l),
+    process_bidi_token(input)
+}
+
+fn process_bidi_token(token: &str) -> String {
+    if !contains_rtl(token) {
+        return token.to_string();
+    }
+
+    let first_rtl = token.chars().find(|c| is_rtl_char(*c));
+    let last_rtl = token.chars().rev().find(|c| is_rtl_char(*c));
+
+    let mut is_visual_reversed = match (first_rtl, last_rtl) {
+        (Some(f), Some(l)) => {
+            (is_final_presentation_form(f) && is_initial_presentation_form(l))
+                || (is_final_presentation_form(f) && (l == '\u{FE8D}' || l == '\u{FE8E}'))
+                || (is_initial_presentation_form(l) && !is_initial_presentation_form(f))
+        }
         _ => false,
     };
 
-    let normalized = normalize_arabic_presentation_forms(input);
+    let normalized = normalize_arabic_presentation_forms(token);
+
+    if !is_visual_reversed && normalized.chars().count() >= 2 {
+        if normalized.starts_with('ة') || normalized.starts_with('ء') {
+            is_visual_reversed = true;
+        } else if normalized.ends_with("لا") && !normalized.starts_with("ال") {
+            is_visual_reversed = true;
+        }
+    }
 
     if is_visual_reversed {
-        // Reverse characters to restore logical order
         normalized.chars().rev().collect()
     } else {
         normalized

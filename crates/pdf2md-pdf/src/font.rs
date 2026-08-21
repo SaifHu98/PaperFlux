@@ -119,6 +119,17 @@ impl FontMap {
                                         }
                                     }
                                 }
+                            } else if parts[2].starts_with('[') || lines[i].contains('[') {
+                                let array_content = &lines[i][lines[i].find('[').unwrap() + 1..];
+                                let clean_tokens: Vec<&str> = array_content
+                                    .split(|c: char| c.is_whitespace() || c == ']')
+                                    .filter(|s| !s.is_empty() && s.starts_with('<'))
+                                    .collect();
+                                for (offset, tok) in clean_tokens.iter().enumerate() {
+                                    if let Some(uni_str) = parse_hex_unicode(tok) {
+                                        self.to_unicode.insert(start_code + offset as u32, uni_str);
+                                    }
+                                }
                             }
                         }
                         processed += 1;

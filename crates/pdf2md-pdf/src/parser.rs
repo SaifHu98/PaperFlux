@@ -549,9 +549,81 @@ fn tokenize_pdf_stream(stream: &str) -> Vec<String> {
     tokens
 }
 
+fn unescape_pdf_string_bytes(raw: &str) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(raw.len());
+    let mut chars = raw.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&next_c) = chars.peek() {
+                match next_c {
+                    'n' => {
+                        chars.next();
+                        bytes.push(b'\n');
+                    }
+                    'r' => {
+                        chars.next();
+                        bytes.push(b'\r');
+                    }
+                    't' => {
+                        chars.next();
+                        bytes.push(b'\t');
+                    }
+                    'b' => {
+                        chars.next();
+                        bytes.push(8);
+                    }
+                    'f' => {
+                        chars.next();
+                        bytes.push(12);
+                    }
+                    '(' => {
+                        chars.next();
+                        bytes.push(b'(');
+                    }
+                    ')' => {
+                        chars.next();
+                        bytes.push(b')');
+                    }
+                    '\\' => {
+                        chars.next();
+                        bytes.push(b'\\');
+                    }
+                    '0'..='7' => {
+                        let mut octal_val = (chars.next().unwrap() as u32) - ('0' as u32);
+                        if let Some(&d2) = chars.peek() {
+                            if ('0'..='7').contains(&d2) {
+                                octal_val = (octal_val << 3)
+                                    + ((chars.next().unwrap() as u32) - ('0' as u32));
+                                if let Some(&d3) = chars.peek() {
+                                    if ('0'..='7').contains(&d3) {
+                                        octal_val = (octal_val << 3)
+                                            + ((chars.next().unwrap() as u32) - ('0' as u32));
+                                    }
+                                }
+                            }
+                        }
+                        bytes.push((octal_val & 0xFF) as u8);
+                    }
+                    _ => {
+                        bytes.push(chars.next().unwrap() as u8);
+                    }
+                }
+            }
+        } else {
+            let mut buf = [0u8; 4];
+            let encoded = c.encode_utf8(&mut buf);
+            bytes.extend_from_slice(encoded.as_bytes());
+        }
+    }
+
+    bytes
+}
+
 fn decode_pdf_string(encoded: &str, font: Option<&FontMap>) -> String {
     if encoded.starts_with('(') && encoded.ends_with(')') {
         let inner = &encoded[1..encoded.len() - 1];
+        let unescaped_bytes = unescape_pdf_string_bytes(inner);
         if let Some(f) = font {
             if f.to_unicode.is_empty() && inner.chars().any(|c| (c as u32) > 127) {
                 // String is already UTF-8 Unicode (e.g. Arabic text stream)
@@ -562,13 +634,13 @@ fn decode_pdf_string(encoded: &str, font: Option<&FontMap>) -> String {
                 out
             } else {
                 let mut out = String::new();
-                for b in inner.bytes() {
+                for &b in &unescaped_bytes {
                     out.push_str(&f.decode_code(b as u32));
                 }
                 out
             }
         } else {
-            inner.to_string()
+            String::from_utf8_lossy(&unescaped_bytes).to_string()
         }
     } else if encoded.starts_with('<') && encoded.ends_with('>') {
         let hex = &encoded[1..encoded.len() - 1];

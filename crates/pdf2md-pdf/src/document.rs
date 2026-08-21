@@ -168,7 +168,7 @@ fn extract_pages(raw_bytes: &[u8], limits: &SecurityLimits) -> Result<Vec<RawPag
 
         // Find fonts referenced in /Resources /Font
         let mut fonts: HashMap<String, FontMap> = HashMap::new();
-        extract_fonts_for_page(raw_bytes, page_dict, &mut fonts);
+        extract_fonts_for_page(raw_bytes, page_dict, limits, &mut fonts);
 
         // Find and decode /Contents stream
         if let Ok(Some(contents_stream)) = extract_contents_stream(raw_bytes, page_dict, limits) {
@@ -248,37 +248,151 @@ fn parse_mediabox(dict: &[u8]) -> Option<(f32, f32)> {
     }
 }
 
+fn find_object_by_id(raw_bytes: &[u8], obj_id: usize) -> Option<usize> {
+    let pat = format!("{} 0 obj", obj_id);
+    let pat_bytes = pat.as_bytes();
+    let mut search_end = raw_bytes.len();
+
+    while let Some(pos) = rfind_subslice(&raw_bytes[..search_end], pat_bytes) {
+        if pos == 0 || !raw_bytes[pos - 1].is_ascii_digit() {
+            return Some(pos);
+        }
+        search_end = pos;
+    }
+    None
+}
+
 fn extract_fonts_for_page(
     raw_bytes: &[u8],
-    _page_dict: &[u8],
+    page_dict: &[u8],
+    limits: &SecurityLimits,
     fonts: &mut HashMap<String, FontMap>,
 ) {
-    let mut search = 0;
-    let base_font_pat = b"/BaseFont";
-    while let Some(pos) = find_subslice(&raw_bytes[search..], base_font_pat) {
-        let abs_pos = search + pos + base_font_pat.len();
-        let slice = &raw_bytes[abs_pos..abs_pos + 200.min(raw_bytes.len() - abs_pos)];
-        let str_val = String::from_utf8_lossy(slice);
-        let token = str_val.split_whitespace().next().unwrap_or("");
-        let base_font_name = token.trim_start_matches('/').to_string();
-
-        let font_id = format!("F{}", fonts.len() + 1);
-        let mut font_map = FontMap::new(font_id.clone(), base_font_name);
-
-        // Check for ToUnicode CMap
-        if let Some(cmap_pos) = find_subslice(&raw_bytes[abs_pos..], b"beginbfchar") {
-            let cmap_start = abs_pos + cmap_pos;
-            let cmap_end = find_subslice(&raw_bytes[cmap_start..], b"endcmap")
-                .map(|p| cmap_start + p)
-                .unwrap_or(raw_bytes.len().min(cmap_start + 4096));
-            font_map
-                .parse_to_unicode_cmap(&String::from_utf8_lossy(&raw_bytes[cmap_start..cmap_end]));
+    // 1. Locate /Resources in page_dict
+    let mut resources_dict = Vec::new();
+    if let Some(res_idx) = find_subslice(page_dict, b"/Resources") {
+        let after_res = &page_dict[res_idx + 10..];
+        let token_slice = &after_res[..100.min(after_res.len())];
+        let token_str = String::from_utf8_lossy(token_slice);
+        let parts: Vec<&str> = token_str.split_whitespace().take(3).collect();
+        if parts.len() >= 2 && parts[1] == "0" {
+            if let Ok(obj_id) = parts[0].parse::<usize>() {
+                if let Some(obj_pos) = find_object_by_id(raw_bytes, obj_id) {
+                    let obj_end = find_subslice(&raw_bytes[obj_pos..], b"endobj")
+                        .map(|p| obj_pos + p)
+                        .unwrap_or(raw_bytes.len());
+                    resources_dict.extend_from_slice(&raw_bytes[obj_pos..obj_end]);
+                }
+            }
+        } else {
+            resources_dict.extend_from_slice(page_dict);
         }
+    } else {
+        resources_dict.extend_from_slice(page_dict);
+    }
 
-        fonts.insert(font_id, font_map);
-        search = abs_pos + token.len().max(1);
-        if fonts.len() > 64 {
-            break;
+    // 2. Locate /Font in resources
+    let mut font_entries: Vec<(String, usize)> = Vec::new();
+    extract_font_refs_from_dict(&resources_dict, &mut font_entries);
+
+    // 3. For each font entry:
+    for (font_key, font_obj_id) in font_entries {
+        if let Some(obj_pos) = find_object_by_id(raw_bytes, font_obj_id) {
+            let obj_end = find_subslice(&raw_bytes[obj_pos..], b"endobj")
+                .map(|p| obj_pos + p)
+                .unwrap_or(raw_bytes.len());
+            let font_obj_bytes = &raw_bytes[obj_pos..obj_end];
+
+            let base_font_name = parse_dict_name(font_obj_bytes, b"/BaseFont")
+                .unwrap_or_else(|| "UnknownFont".to_string());
+
+            let mut font_map = FontMap::new(font_key.clone(), base_font_name);
+
+            // Check for /ToUnicode N 0 R in font_obj_bytes or descendant fonts
+            let mut to_unicode_id = parse_dict_ref_id(font_obj_bytes, b"/ToUnicode");
+
+            if to_unicode_id.is_none() {
+                if let Some(desc_id) = parse_dict_ref_id(font_obj_bytes, b"/DescendantFonts") {
+                    if let Some(d_pos) = find_object_by_id(raw_bytes, desc_id) {
+                        let d_end = find_subslice(&raw_bytes[d_pos..], b"endobj")
+                            .map(|p| d_pos + p)
+                            .unwrap_or(raw_bytes.len());
+                        let desc_bytes = &raw_bytes[d_pos..d_end];
+                        to_unicode_id = parse_dict_ref_id(desc_bytes, b"/ToUnicode");
+                    }
+                }
+            }
+
+            if let Some(tu_id) = to_unicode_id {
+                if let Some(tu_pos) = find_object_by_id(raw_bytes, tu_id) {
+                    let tu_slice = &raw_bytes[tu_pos..];
+                    if let Some(s_pos) = find_subslice(tu_slice, b"stream") {
+                        let mut s_start = tu_pos + s_pos + 6;
+                        if raw_bytes.get(s_start) == Some(&b'\r')
+                            && raw_bytes.get(s_start + 1) == Some(&b'\n')
+                        {
+                            s_start += 2;
+                        } else if raw_bytes.get(s_start) == Some(&b'\n') {
+                            s_start += 1;
+                        }
+
+                        if let Some(s_end_rel) = find_subslice(&raw_bytes[s_start..], b"endstream")
+                        {
+                            let mut cmap_raw = &raw_bytes[s_start..s_start + s_end_rel];
+                            while cmap_raw.ends_with(b"\n")
+                                || cmap_raw.ends_with(b"\r")
+                                || cmap_raw.ends_with(b" ")
+                            {
+                                cmap_raw = &cmap_raw[..cmap_raw.len() - 1];
+                            }
+
+                            let is_flate =
+                                find_subslice(&tu_slice[..s_pos], b"/FlateDecode").is_some();
+                            let filter = if is_flate { Some("FlateDecode") } else { None };
+                            if let Ok(decompressed) = decode_stream(cmap_raw, filter, limits) {
+                                font_map
+                                    .parse_to_unicode_cmap(&String::from_utf8_lossy(&decompressed));
+                            } else {
+                                font_map.parse_to_unicode_cmap(&String::from_utf8_lossy(cmap_raw));
+                            }
+                        }
+                    }
+                }
+            }
+
+            fonts.insert(font_key, font_map);
+        }
+    }
+
+    // 4. Fallback if no fonts found
+    if fonts.is_empty() {
+        let mut search = 0;
+        let base_font_pat = b"/BaseFont";
+        while let Some(pos) = find_subslice(&raw_bytes[search..], base_font_pat) {
+            let abs_pos = search + pos + base_font_pat.len();
+            let slice = &raw_bytes[abs_pos..abs_pos + 200.min(raw_bytes.len() - abs_pos)];
+            let str_val = String::from_utf8_lossy(slice);
+            let token = str_val.split_whitespace().next().unwrap_or("");
+            let base_font_name = token.trim_start_matches('/').to_string();
+
+            let font_id = format!("F{}", fonts.len() + 1);
+            let mut font_map = FontMap::new(font_id.clone(), base_font_name);
+
+            if let Some(cmap_pos) = find_subslice(&raw_bytes[abs_pos..], b"beginbfchar") {
+                let cmap_start = abs_pos + cmap_pos;
+                let cmap_end = find_subslice(&raw_bytes[cmap_start..], b"endcmap")
+                    .map(|p| cmap_start + p)
+                    .unwrap_or(raw_bytes.len().min(cmap_start + 4096));
+                font_map.parse_to_unicode_cmap(&String::from_utf8_lossy(
+                    &raw_bytes[cmap_start..cmap_end],
+                ));
+            }
+
+            fonts.insert(font_id, font_map);
+            search = abs_pos + token.len().max(1);
+            if fonts.len() > 64 {
+                break;
+            }
         }
     }
 }
@@ -314,29 +428,31 @@ fn extract_contents_stream(
         let token_str = String::from_utf8_lossy(token_slice);
         let parts: Vec<&str> = token_str.split_whitespace().take(3).collect();
         if parts.len() >= 2 && parts[1] == "0" {
-            let obj_pattern = format!("{} 0 obj", parts[0]);
-            if let Some(obj_pos) = find_subslice(raw_bytes, obj_pattern.as_bytes()) {
-                let obj_slice = &raw_bytes[obj_pos..];
-                if let Some(stream_pos) = find_subslice(obj_slice, b"stream") {
-                    let mut stream_start = stream_pos + 6;
-                    if obj_slice.get(stream_start) == Some(&b'\r')
-                        && obj_slice.get(stream_start + 1) == Some(&b'\n')
-                    {
-                        stream_start += 2;
-                    } else if obj_slice.get(stream_start) == Some(&b'\n') {
-                        stream_start += 1;
-                    }
+            if let Ok(obj_id) = parts[0].parse::<usize>() {
+                if let Some(obj_pos) = find_object_by_id(raw_bytes, obj_id) {
+                    let obj_slice = &raw_bytes[obj_pos..];
+                    if let Some(stream_pos) = find_subslice(obj_slice, b"stream") {
+                        let mut stream_start = stream_pos + 6;
+                        if obj_slice.get(stream_start) == Some(&b'\r')
+                            && obj_slice.get(stream_start + 1) == Some(&b'\n')
+                        {
+                            stream_start += 2;
+                        } else if obj_slice.get(stream_start) == Some(&b'\n') {
+                            stream_start += 1;
+                        }
 
-                    if let Some(stream_end_rel) =
-                        find_subslice(&obj_slice[stream_start..], b"endstream")
-                    {
-                        let stream_end = stream_start + stream_end_rel;
-                        let raw_slice = &obj_slice[stream_start..stream_end];
-                        let is_flate =
-                            find_subslice(&obj_slice[..stream_start], b"/FlateDecode").is_some();
-                        let filter = if is_flate { Some("FlateDecode") } else { None };
-                        let decoded = decode_stream(raw_slice, filter, limits)?;
-                        return Ok(Some(decoded));
+                        if let Some(stream_end_rel) =
+                            find_subslice(&obj_slice[stream_start..], b"endstream")
+                        {
+                            let stream_end = stream_start + stream_end_rel;
+                            let raw_slice = &obj_slice[stream_start..stream_end];
+                            let is_flate =
+                                find_subslice(&obj_slice[..stream_start], b"/FlateDecode")
+                                    .is_some();
+                            let filter = if is_flate { Some("FlateDecode") } else { None };
+                            let decoded = decode_stream(raw_slice, filter, limits)?;
+                            return Ok(Some(decoded));
+                        }
                     }
                 }
             }
@@ -471,4 +587,76 @@ fn parse_dict_number(dict: &[u8], key: &[u8]) -> Option<usize> {
     let slice = &dict[pos + key.len()..pos + key.len() + 20.min(dict.len() - pos - key.len())];
     let s = String::from_utf8_lossy(slice);
     s.split_whitespace().next()?.parse::<usize>().ok()
+}
+
+fn parse_dict_name(dict: &[u8], key: &[u8]) -> Option<String> {
+    let pos = find_subslice(dict, key)?;
+    let after = &dict[pos + key.len()..];
+    let slice = &after[..100.min(after.len())];
+    let s = String::from_utf8_lossy(slice);
+    let token = s.split_whitespace().next()?;
+    let name = token.trim_start_matches('/').to_string();
+    Some(name.replace("#20", " "))
+}
+
+fn parse_dict_ref_id(dict: &[u8], key: &[u8]) -> Option<usize> {
+    let pos = find_subslice(dict, key)?;
+    let after = &dict[pos + key.len()..];
+    let slice = &after[..100.min(after.len())];
+    let s = String::from_utf8_lossy(slice);
+    let clean = s.replace(['[', ']'], " ");
+    let mut tokens = clean.split_whitespace();
+    while let Some(tok) = tokens.next() {
+        if let Ok(id) = tok.parse::<usize>() {
+            if let Some(gen_str) = tokens.next() {
+                if gen_str == "0" {
+                    if let Some(r_str) = tokens.next() {
+                        if r_str == "R" {
+                            return Some(id);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn extract_font_refs_from_dict(dict: &[u8], refs: &mut Vec<(String, usize)>) {
+    let clean = String::from_utf8_lossy(dict)
+        .replace(['<', '>'], " ")
+        .replace('/', " /");
+    let mut tokens = clean.split_whitespace();
+    let mut in_font = false;
+
+    while let Some(tok) = tokens.next() {
+        if tok == "/Font" {
+            in_font = true;
+            continue;
+        }
+        if in_font {
+            if tok.starts_with('/') {
+                let name = tok.trim_start_matches('/').to_string();
+                if let Some(id_str) = tokens.next() {
+                    if let Ok(id) = id_str.parse::<usize>() {
+                        if let Some(gen_str) = tokens.next() {
+                            if gen_str == "0" {
+                                if let Some(r_str) = tokens.next() {
+                                    if r_str == "R" {
+                                        refs.push((name, id));
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if tok.starts_with("/XObject")
+                || tok.starts_with("/ProcSet")
+                || tok.starts_with("/ColorSpace")
+            {
+                in_font = false;
+            }
+        }
+    }
 }

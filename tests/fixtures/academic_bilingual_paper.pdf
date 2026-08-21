@@ -1,0 +1,92 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+4 0 obj
+<< /Length 713 >>
+stream
+BT
+/F2 18 Tf
+72 710 Td
+(Machine Learning Approaches for Arabic NLP) Tj
+/F1 11 Tf
+0 -25 Td
+(Authors: Dr. Tariq Al-Mansoor, Prof. Elena Rostova) Tj
+0 -20 Td
+/F2 13 Tf
+(Abstract) Tj
+/F1 10 Tf
+0 -18 Td
+(This paper investigates transformer architectures for morphological disambiguation.) Tj
+0 -15 Td
+(\xd9\x8a\xd8\xaa\xd9\x86\xd8\xa7\xd9\x88\xd9\x84 \xd9\x87\xd8\xb0\xd8\xa7 \xd8\xa7\xd9\x84\xd8\xa8\xd8\xad\xd8\xab \xd9\x86\xd9\x85\xd8\xa7\xd8\xb0\xd8\xac \xd8\xa7\xd9\x84\xd8\xaa\xd8\xb9\xd9\x84\xd9\x85 \xd8\xa7\xd9\x84\xd8\xb9\xd9\x85\xd9\x8a\xd9\x82 \xd9\x84\xd9\x85\xd8\xb9\xd8\xa7\xd9\x84\xd8\xac\xd8\xa9 \xd8\xa7\xd9\x84\xd9\x84\xd8\xba\xd8\xa9 \xd8\xa7\xd9\x84\xd8\xb9\xd8\xb1\xd8\xa8\xd9\x8a\xd8\xa9) Tj
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+6 0 obj
+<< /Length 423 >>
+stream
+BT
+/F2 14 Tf
+72 710 Td
+(1. Methodology and Model Architecture) Tj
+/F1 10 Tf
+0 -22 Td
+(We utilized bidirectional cross-attention with 24 layers and 16 attention heads.) Tj
+0 -18 Td
+(Training was conducted on a multi-genre Arabic dataset comprising 50M tokens.) Tj
+0 -18 Td
+(Table 1: Hyperparameter Configuration) Tj
+0 -18 Td
+(Parameter | Layer Count | Learning Rate | Batch Size) Tj
+0 -15 Td
+(Value | 24 | 1e-4 | 128) Tj
+ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+8 0 obj
+<< /Length 635 >>
+stream
+BT
+/F2 14 Tf
+72 710 Td
+(2. Results and Conclusion) Tj
+/F1 10 Tf
+0 -22 Td
+(The proposed model achieved 94.8% F1-score across benchmark datasets.) Tj
+0 -18 Td
+(\xd8\xa3\xd8\xb8\xd9\x87\xd8\xb1\xd8\xaa \xd8\xa7\xd9\x84\xd9\x86\xd8\xaa\xd8\xa7\xd8\xa6\xd8\xac \xd8\xaa\xd9\x81\xd9\x88\xd9\x82\xd8\xa7 \xd9\x88\xd8\xa7\xd8\xb6\xd8\xad\xd8\xa7 \xd9\x81\xd9\x8a \xd8\xaf\xd9\x82\xd8\xa9 \xd8\xa7\xd9\x84\xd8\xaa\xd8\xb5\xd9\x86\xd9\x8a\xd9\x81) Tj
+0 -25 Td
+/F2 12 Tf
+(References) Tj
+/F1 9 Tf
+0 -18 Td
+([1] Vaswani et al., Attention Is All You Need, NeurIPS 2017.) Tj
+0 -15 Td
+([2] Al-Badr et al., Arabic Semantic Benchmarks, ACL 2024.) Tj
+ET
+
+endstream
+endobj
+xref
+0 1
+0000000000 65535 f 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+500
+%%EOF

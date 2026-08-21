@@ -1,0 +1,23 @@
+# PaperFlux Architecture Specification v2.0
+
+High-Performance Arabic PDF to Markdown Engine
+
+Module Overview: pdf2md-core, pdf2md-layout, pdf2md-table
+
+<!-- pagebreak: page 2 -->
+
+## Engine Performance SLAs
+
+| Metric | SLA Target | Unit |
+|---|---|---|
+| Single-Page Latency | < 5.0 | ms |
+| Memory per Worker | < 64 | MB |
+| Parallel Throughput | > 200 | pages/sec |
+
+<!-- pagebreak: page 3 -->
+
+## CLI Deployment Instructions
+
+Command: cargo build --release -p pdf2md-cli
+
+Binary Location: target/release/pdf2md

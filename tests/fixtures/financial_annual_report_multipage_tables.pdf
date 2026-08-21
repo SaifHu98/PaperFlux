@@ -1,0 +1,101 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+4 0 obj
+<< /Length 196 >>
+stream
+BT
+/F2 18 Tf
+72 710 Td
+(Alpha Holding Group - Annual Financial Report 2026) Tj
+/F1 11 Tf
+0 -25 Td
+(Consolidated Balance Sheet and Operating Revenue) Tj
+0 -20 Td
+(Currency: USD in Thousands) Tj
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+6 0 obj
+<< /Length 382 >>
+stream
+BT
+/F2 12 Tf
+72 710 Td
+(Consolidated Statement of Operations - Part 1) Tj
+/F1 10 Tf
+0 -20 Td
+(Category | Q1 | Q2 | Q3 | Q4 | Total) Tj
+0 -16 Td
+(Cloud Software Revenue | 12,400 | 14,200 | 15,800 | 18,100 | 60,500) Tj
+0 -16 Td
+(Hardware Systems | 8,200 | 8,500 | 9,100 | 9,800 | 35,600) Tj
+0 -16 Td
+(Consulting & Professional Services | 4,100 | 4,300 | 4,600 | 5,000 | 18,000) Tj
+ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+8 0 obj
+<< /Length 378 >>
+stream
+BT
+/F2 12 Tf
+72 710 Td
+(Consolidated Statement of Operations - Part 2) Tj
+/F1 10 Tf
+0 -20 Td
+(Category | Q1 | Q2 | Q3 | Q4 | Total) Tj
+0 -16 Td
+(Research & Development Expenses | 3,200 | 3,400 | 3,700 | 4,100 | 14,400) Tj
+0 -16 Td
+(Sales & Marketing | 2,800 | 3,000 | 3,200 | 3,500 | 12,500) Tj
+0 -16 Td
+(Net Operating Income | 18,700 | 20,600 | 22,600 | 25,300 | 87,200) Tj
+ET
+
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 10 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >> >> >>
+endobj
+10 0 obj
+<< /Length 311 >>
+stream
+BT
+/F2 14 Tf
+72 710 Td
+(Audit Committee Statement & Signatures) Tj
+/F1 10 Tf
+0 -25 Td
+(The financial statements have been audited in accordance with International Financial Reporting Standards.) Tj
+0 -20 Td
+(Chief Financial Officer: Marcus Vance, CPA) Tj
+0 -15 Td
+(External Auditor: Global Assurance LLP) Tj
+ET
+
+endstream
+endobj
+xref
+0 1
+0000000000 65535 f 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+500
+%%EOF

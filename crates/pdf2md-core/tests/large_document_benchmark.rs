@@ -116,3 +116,96 @@ fn test_large_100_page_pdf_parallel_conversion_benchmark() {
         result_seq.document.sections.len()
     );
 }
+
+#[test]
+fn test_real_world_disk_fixtures_benchmark() {
+    use std::fs;
+    use std::path::{Path, PathBuf};
+
+    let candidates = [
+        PathBuf::from("tests/fixtures"),
+        PathBuf::from("../../tests/fixtures"),
+        PathBuf::from("../tests/fixtures"),
+    ];
+
+    let mut fixtures_dir = PathBuf::from("tests/fixtures");
+    for c in &candidates {
+        if c.exists() && c.is_dir() {
+            fixtures_dir = c.clone();
+            break;
+        }
+    }
+
+    if !fixtures_dir.exists() {
+        let manifest = env!("CARGO_MANIFEST_DIR");
+        let p = Path::new(manifest).join("../../tests/fixtures");
+        if p.exists() {
+            fixtures_dir = p;
+        }
+    }
+
+    let mut pdf_files = Vec::new();
+    if fixtures_dir.exists() {
+        for entry in fs::read_dir(&fixtures_dir).expect("Read fixtures dir") {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) == Some("pdf") {
+                pdf_files.push(path);
+            }
+        }
+    }
+
+    pdf_files.sort();
+    assert!(
+        pdf_files.len() >= 10,
+        "Expected at least 10 real-world fixtures on disk, found {}",
+        pdf_files.len()
+    );
+
+    let config = Config::builder().profile(ExecutionProfile::Fast).build();
+    let converter = Converter::new(config);
+
+    println!("\n==========================================================================================================");
+    println!("                               REAL-WORLD ON-DISK FIXTURE LATENCY BENCHMARK                               ");
+    println!("==========================================================================================================");
+    println!(
+        "{:<45} | {:<6} | {:<8} | {:<12} | {:<14}",
+        "Fixture Document", "Pages", "PDF Size", "Duration (ms)", "Throughput (p/s)"
+    );
+    println!("----------------------------------------------------------------------------------------------------------");
+
+    let mut total_duration = std::time::Duration::ZERO;
+    let mut total_pages = 0;
+
+    for pdf_path in &pdf_files {
+        let pdf_bytes = fs::read(pdf_path).expect("Read PDF fixture");
+        let start = Instant::now();
+        let result = converter
+            .convert_bytes(&pdf_bytes)
+            .unwrap_or_else(|e| panic!("Benchmark failed on {:?}: {:?}", pdf_path, e));
+        let elapsed = start.elapsed();
+        total_duration += elapsed;
+        total_pages += result.diagnostics.total_pages;
+
+        let duration_ms = elapsed.as_secs_f64() * 1000.0;
+        let pps = result.diagnostics.total_pages as f64 / elapsed.as_secs_f64();
+
+        println!(
+            "{:<45} | {:<6} | {:<8} | {:<12.2} | {:<14.1}",
+            pdf_path.file_name().unwrap().to_str().unwrap(),
+            result.diagnostics.total_pages,
+            format!("{} B", pdf_bytes.len()),
+            duration_ms,
+            pps
+        );
+    }
+
+    println!("----------------------------------------------------------------------------------------------------------");
+    println!(
+        "Total {} Fixtures ({} Pages) Processed in {:?} ({:.1} pages/sec)\n",
+        pdf_files.len(),
+        total_pages,
+        total_duration,
+        total_pages as f64 / total_duration.as_secs_f64()
+    );
+}

@@ -473,6 +473,7 @@ PaperFlux/
 ## 🗺️ Roadmap & Status
 
 ### ✅ Implemented
+* [x] **Real-World Multi-Page PDF Fixture Corpus on Disk**: 10 diverse multi-page PDF documents in `tests/fixtures/` with matching verified `.md.gold` ground-truth standards and automated latency benchmark coverage.
 * [x] **Statistical Font Clustering & Nastaliq Detection**: Automated detection of cascading diagonal writing baselines, bounding box overlap density, and automated 300 DPI OCR escalation for Nastaliq and Diwani calligraphic scripts.
 * [x] **Multi-Page Table Stitching**: Native detection and merging of tables across page boundaries with header deduplication and RTL alignment.
 * [x] **Native Python FFI (`pyo3`)**: High-performance Python package (`paperflux`) with memory-buffer and file conversion APIs.
@@ -491,7 +492,6 @@ PaperFlux/
 * [ ] Complex multi-layer mathematical formula tree reconstruction.
 
 ### 🚧 In Progress
-* [ ] Real-world multi-page PDF fixture corpus on disk.
 * [ ] Embedded vector chart and schematic diagram extraction to SVG.
 
 ### 📋 Planned

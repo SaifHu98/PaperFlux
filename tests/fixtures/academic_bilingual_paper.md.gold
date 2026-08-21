@@ -1,37 +1,33 @@
-# Machine Learning Approaches for Arabic NLP
-
-Authors: Dr. Tariq Al-Mansoor, Prof. Elena Rostova
-
-## Abstract
+# **Machine Learning Approaches for Arabic NLP**
 
 This paper investigates transformer architectures for morphological disambiguation.
 
+### Authors: Dr. Tariq Al-Mansoor, Prof. Elena Rostova
+
+## **Abstract**
+
 يتناول هذا البحث نماذج التعلم العميق لمعالجة اللغة العربية
 
-<!-- pagebreak: page 2 -->
 
-## 1. Methodology and Model Architecture
+<!-- pagebreak: page 2 -->
 
 We utilized bidirectional cross-attention with 24 layers and 16 attention heads.
 
 Training was conducted on a multi-genre Arabic dataset comprising 50M tokens.
 
-Table 1: Hyperparameter Configuration
+1. Methodology and Model Architecture
 
-| Parameter | Layer Count | Learning Rate | Batch Size |
-|---|---|---|---|
-| Value | 24 | 1e-4 | 128 |
+*Table 1: Hyperparameter Configuration Parameter | Layer Count | Learning Rate | Batch Size Value | 24 | 1e-4 | 128*
+
 
 <!-- pagebreak: page 3 -->
 
-## 2. Results and Conclusion
+1. Results and Conclusion
 
-The proposed model achieved 94.8% F1-score across benchmark datasets.
+The proposed model achieved 94.8% F1-score across benchmark datasets. أظهرت النتائج تفوقا واضحا في دقة التصنيف
 
-أظهرت النتائج تفوقا واضحا في دقة التصنيف
+## **References**
 
-### References
+1. Vaswani et al., Attention Is All You Need, NeurIPS 2017.
+2. Al-Badr et al., Arabic Semantic Benchmarks, ACL 2024.
 
-[1] Vaswani et al., Attention Is All You Need, NeurIPS 2017.
-
-[2] Al-Badr et al., Arabic Semantic Benchmarks, ACL 2024.

@@ -1,5 +1,6 @@
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use pdf2md_core::{Config, Converter, MarkdownDialect, OcrMode, PageBreakStyle};
+use pdf2md_eval::Evaluator;
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
@@ -13,9 +14,12 @@ use std::process;
     about = "Converts PDF documents into clean, structurally accurate Markdown"
 )]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Input PDF file path, or "-" to read from standard input
     #[arg(value_name = "INPUT")]
-    input: String,
+    input: Option<String>,
 
     /// Output Markdown file path, or "-" for standard output
     #[arg(short = 'o', long = "output")]
@@ -78,6 +82,39 @@ struct Cli {
     no_frontmatter: bool,
 }
 
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Evaluate CER/WER against a ground truth .md file
+    Eval {
+        /// Ground truth Markdown file path
+        #[arg(long = "ground-truth")]
+        ground_truth: PathBuf,
+
+        /// Input PDF file to evaluate
+        #[arg(value_name = "PDF")]
+        pdf: PathBuf,
+
+        /// Maximum allowed CER threshold (e.g. 0.05 for 5%)
+        #[arg(long = "max-cer", default_value = "0.05")]
+        max_cer: f64,
+
+        /// Maximum allowed WER threshold (e.g. 0.10 for 10%)
+        #[arg(long = "max-wer", default_value = "0.10")]
+        max_wer: f64,
+    },
+
+    /// Evaluate all fixtures in a directory against matching .md.gold files
+    EvalCorpus {
+        /// Directory containing PDF fixtures and .md.gold ground truths
+        #[arg(long = "fixtures-dir", default_value = "tests/fixtures")]
+        fixtures_dir: PathBuf,
+
+        /// Maximum allowed average CER threshold
+        #[arg(long = "max-cer", default_value = "0.05")]
+        max_cer: f64,
+    },
+}
+
 #[derive(ValueEnum, Clone, Copy, Debug)]
 enum DialectArg {
     Commonmark,
@@ -103,8 +140,85 @@ enum PageBreakArg {
 fn main() {
     let cli = Cli::parse();
 
+    if let Some(command) = cli.command {
+        match command {
+            Commands::Eval {
+                ground_truth,
+                pdf,
+                max_cer,
+                max_wer,
+            } => {
+                let evaluator = Evaluator::new().with_thresholds(max_cer, max_wer);
+                match evaluator.evaluate_pdf_against_gold_file(&pdf, &ground_truth) {
+                    Ok(res) => {
+                        let cer_pct = res.metrics.cer.error_rate * 100.0;
+                        let wer_pct = res.metrics.wer.error_rate * 100.0;
+                        println!("Evaluation Results for '{}':", res.filename);
+                        println!(
+                            "  CER: {:.2}% (Sub: {}, Del: {}, Ins: {}, Ref: {})",
+                            cer_pct,
+                            res.metrics.cer.substitutions,
+                            res.metrics.cer.deletions,
+                            res.metrics.cer.insertions,
+                            res.metrics.cer.reference_count
+                        );
+                        println!(
+                            "  WER: {:.2}% (Sub: {}, Del: {}, Ins: {}, Ref: {})",
+                            wer_pct,
+                            res.metrics.wer.substitutions,
+                            res.metrics.wer.deletions,
+                            res.metrics.wer.insertions,
+                            res.metrics.wer.reference_count
+                        );
+                        if res.passed {
+                            println!("Status: PASS (CER <= {:.1}%)", max_cer * 100.0);
+                            process::exit(0);
+                        } else {
+                            eprintln!("Status: FAIL (CER > {:.1}%)", max_cer * 100.0);
+                            process::exit(1);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Evaluation error: {}", e);
+                        process::exit(1);
+                    }
+                }
+            }
+            Commands::EvalCorpus {
+                fixtures_dir,
+                max_cer,
+            } => {
+                let evaluator = Evaluator::new().with_thresholds(max_cer, 0.10);
+                match evaluator.evaluate_corpus_dir(&fixtures_dir) {
+                    Ok(report) => {
+                        println!("{}", report.format_markdown_table());
+                        if report.all_passed {
+                            println!("All fixtures passed CER threshold!");
+                            process::exit(0);
+                        } else {
+                            eprintln!("Some fixtures exceeded CER threshold.");
+                            process::exit(1);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Corpus evaluation error: {}", e);
+                        process::exit(1);
+                    }
+                }
+            }
+        }
+    }
+
+    let input_path = match cli.input {
+        Some(p) => p,
+        None => {
+            eprintln!("Error: No input PDF file specified. Run with --help for usage.");
+            process::exit(1);
+        }
+    };
+
     // 1. Read input bytes
-    let input_bytes = if cli.input == "-" {
+    let input_bytes = if input_path == "-" {
         let mut buffer = Vec::new();
         if let Err(e) = io::stdin().read_to_end(&mut buffer) {
             eprintln!("Error reading from stdin: {}", e);
@@ -112,10 +226,10 @@ fn main() {
         }
         buffer
     } else {
-        match fs::read(&cli.input) {
+        match fs::read(&input_path) {
             Ok(bytes) => bytes,
             Err(e) => {
-                eprintln!("Error reading file '{}': {}", cli.input, e);
+                eprintln!("Error reading file '{}': {}", input_path, e);
                 process::exit(1);
             }
         }

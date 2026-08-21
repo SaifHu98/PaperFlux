@@ -1,0 +1,16 @@
+[package]
+name = "pdf2md-eval"
+version = "0.1.0"
+edition = "2021"
+authors = ["EcoUni Systems <dev@ecouni.org>"]
+license = "MIT OR Apache-2.0"
+description = "Automated CER/WER ground-truth evaluation diff engine"
+
+[dependencies]
+pdf2md-core = { path = "../pdf2md-core" }
+pdf2md-text = { path = "../pdf2md-text" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+unicode-normalization = { workspace = true }
+unicode-segmentation = { workspace = true }
+log = { workspace = true }

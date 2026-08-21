@@ -246,6 +246,12 @@ pdf2md manual.pdf -o manual.md \
   --extract-vectors \
   --images-dir ./assets \
   --diagnostics-json ./telemetry.json
+
+# Automated CER / WER ground-truth evaluation
+pdf2md eval --ground-truth manual.md.gold manual.pdf --max-cer 0.05
+
+# Corpus batch evaluation across entire fixture directory
+pdf2md eval-corpus --fixtures-dir ./tests/fixtures --max-cer 0.05
 ```
 
 ---
@@ -482,6 +488,7 @@ PaperFlux/
 │   ├── pdf2md-ocr          # Pluggable OCRProvider, ArabicOcrDecisionEngine, Stream Fusion
 │   ├── pdf2md-images       # Raster processing, SVG vector chart serialization, dimension guards
 │   ├── pdf2md-markdown     # AST to Markdown serializer (CommonMark, GFM, Extended)
+│   ├── pdf2md-eval         # Automated CER/WER ground-truth evaluation diff engine
 │   ├── pdf2md-core         # Orchestration pipeline, ArabicQualityScore, Scheduler, PageCache
 │   ├── pdf2md-cli          # Native CLI binary (`pdf2md`)
 │   ├── pdf2md-wasm         # WebAssembly bindings for browser execution
@@ -517,6 +524,7 @@ PaperFlux/
 ## 🗺️ Roadmap & Status
 
 ### ✅ Implemented
+* [x] **Automated CER/WER Ground-Truth Evaluation Diff Engine (`pdf2md-eval`)**: Dynamic programming character and word error rate evaluation with Unicode normalization and corpus reporting.
 * [x] **Go Wrapper Package (`github.com/SaifHu98/paperflux-go`)**: High-performance Go client with in-memory byte slice, stream, and disk file conversion support.
 * [x] **Embedded Vector Chart & Schematic Diagram Extraction to SVG**: Extracts vector paths, Bézier curves, and embedded text labels into standalone SVG assets.
 * [x] **Real-World Multi-Page PDF Fixture Corpus on Disk**: 10 diverse multi-page PDF documents in `tests/fixtures/` with matching verified `.md.gold` ground-truth standards and automated latency benchmark coverage.
@@ -541,7 +549,7 @@ PaperFlux/
 * [ ] Interactive web demo playground for live Arabic PDF conversion.
 
 ### 📋 Planned
-* [ ] Automated CER/WER ground-truth evaluation diff engine.
+* [ ] Interactive browser playground UI.
 
 ---
 

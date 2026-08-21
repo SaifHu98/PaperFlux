@@ -14,5 +14,6 @@ path = "src/main.rs"
 pdf2md-core = { path = "../pdf2md-core" }
 pdf2md-ast = { path = "../pdf2md-ast" }
 pdf2md-ocr = { path = "../pdf2md-ocr" }
+pdf2md-eval = { path = "../pdf2md-eval" }
 clap = { workspace = true }
 serde_json = { workspace = true }

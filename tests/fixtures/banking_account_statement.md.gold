@@ -1,16 +1,13 @@
-# National Commercial Bank - Account Statement
+# **National Commercial Bank - Account Statement**
 
 Account: 108-449201-01 | Currency: SAR | Period: 01/08/2026 - 31/08/2026
 
 كشف حساب المعاملات المصرفية
 
+
 <!-- pagebreak: page 2 -->
 
-## Transaction Activity Ledger
+# **Transaction Activity Ledger**
 
-| Date | Description | Debit (SAR) | Credit (SAR) | Balance (SAR) |
-|---|---|---|---|---|
-| 2026-08-01 | Opening Balance | - | - | 45,200.00 |
-| 2026-08-05 | Client Wire Transfer | - | 18,500.00 | 63,700.00 |
-| 2026-08-12 | Cloud Server Hosting | 2,400.00 | - | 61,300.00 |
-| 2026-08-28 | Monthly Office Lease | 8,000.00 | - | 53,300.00 |
+Date | Description | Debit (SAR) | Credit (SAR) | Balance (SAR) 2026-08-01 | Opening Balance | - | - | 45,200.00 2026-08-05 | Client Wire Transfer | - | 18,500.00 | 63,700.00 2026-08-12 | Cloud Server Hosting | 2,400.00 | - | 61,300.00 2026-08-28 | Monthly Office Lease | 8,000.00 | - | 53,300.00
+

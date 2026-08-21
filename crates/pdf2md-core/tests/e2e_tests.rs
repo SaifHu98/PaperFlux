@@ -79,18 +79,20 @@ fn test_end_to_end_list_detection() {
 fn test_config_calligraphy_ocr_dpi_options() {
     let config = Config::builder()
         .ocr_dpi(300)
-        .auto_calligraphy_dpi_boost(true)
+        .calligraphic_dpi_escalation(true)
         .build();
 
     assert_eq!(config.ocr_dpi, Some(300));
+    assert!(config.calligraphic_dpi_escalation);
     assert!(config.auto_calligraphy_dpi_boost);
 
     let config_custom = Config::builder()
         .ocr_dpi(400)
-        .auto_calligraphy_dpi_boost(false)
+        .calligraphic_dpi_escalation(false)
         .build();
 
     assert_eq!(config_custom.ocr_dpi, Some(400));
+    assert!(!config_custom.calligraphic_dpi_escalation);
     assert!(!config_custom.auto_calligraphy_dpi_boost);
 }
 

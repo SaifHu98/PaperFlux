@@ -90,10 +90,7 @@ fn test_geometric_cascading_baseline_and_overlap_detection() {
 
     let det = CalligraphyDetector::detect(&page);
     assert!(det.is_calligraphic);
-    assert_eq!(
-        det.script_type,
-        Some(CalligraphicScriptType::GenericCalligraphic)
-    );
+    assert_eq!(det.script_type, Some(CalligraphicScriptType::Nastaliq));
     assert_eq!(det.recommended_dpi, 300);
 }
 
@@ -109,4 +106,49 @@ fn test_standard_naskh_horizontal_typography_normal_dpi() {
     let det = CalligraphyDetector::detect(&page);
     assert!(!det.is_calligraphic);
     assert_eq!(det.recommended_dpi, 150);
+}
+
+#[test]
+fn test_statistical_font_clustering_synthetic_nastaliq_fixture() {
+    let mut page = RawPage::new(1, 612.0, 792.0);
+    // Generic font name with NO Nastaliq keywords in font name
+    let font_name = "EmbeddedCustomType3Font_ABC123";
+
+    // 6 glyph spans with cascading diagonal baselines (slope ~ 0.5) and 50% horizontal overlap
+    for i in 0..6 {
+        let x = 100.0 + (i as f32 * 14.0);
+        let y = 200.0 + (i as f32 * 7.5);
+        page.text_spans.push(make_span(
+            &format!("حرف_{}", i),
+            font_name,
+            BoundingBox::new(x, y, 28.0, 22.0),
+        ));
+    }
+
+    let det = CalligraphyDetector::detect(&page);
+    assert!(det.is_calligraphic);
+    assert_eq!(det.script_type, Some(CalligraphicScriptType::Nastaliq));
+    assert!(
+        det.confidence >= 0.75,
+        "Expected confidence >= 0.75, got {}",
+        det.confidence
+    );
+    assert_eq!(det.recommended_dpi, 300);
+
+    let metrics = det
+        .metrics
+        .expect("Expected StatisticalGlyphMetrics to be populated");
+    assert!(metrics.overlap_density >= 0.50);
+    assert!(metrics.diagonal_slope_ratio >= 0.50);
+    assert!(metrics.baseline_deviation > 0.0);
+
+    let decision = ArabicOcrDecisionEngine::evaluate_page(&page, ArabicDialectHint::GeneralArabic);
+    if let ArabicOcrDecision::RequireOcr { preflight, reason } = decision {
+        assert!(preflight.is_calligraphic);
+        assert_eq!(preflight.calligraphic_script, Some("Nastaliq".to_string()));
+        assert_eq!(preflight.estimated_dpi, 300);
+        assert!(reason.contains("300 DPI"));
+    } else {
+        panic!("Expected RequireOcr with 300 DPI escalation for synthetic Nastaliq clustering");
+    }
 }

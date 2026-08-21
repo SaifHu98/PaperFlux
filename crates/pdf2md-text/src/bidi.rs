@@ -192,12 +192,13 @@ fn process_bidi_token(token: &str) -> String {
 
     let normalized = normalize_arabic_presentation_forms(token);
 
-    if !is_visual_reversed && normalized.chars().count() >= 2 {
-        if normalized.starts_with('ة') || normalized.starts_with('ء') {
-            is_visual_reversed = true;
-        } else if normalized.ends_with("لا") && !normalized.starts_with("ال") {
-            is_visual_reversed = true;
-        }
+    if !is_visual_reversed
+        && normalized.chars().count() >= 2
+        && (normalized.starts_with('ة')
+            || normalized.starts_with('ء')
+            || (normalized.ends_with("لا") && !normalized.starts_with("ال")))
+    {
+        is_visual_reversed = true;
     }
 
     if is_visual_reversed {

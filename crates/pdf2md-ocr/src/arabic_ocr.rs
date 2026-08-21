@@ -192,8 +192,10 @@ impl ArabicOcrDecisionEngine {
             };
         }
 
-        // 5. Calligraphic script with raster image or moderate quality -> Require 300+ DPI OCR / Fusion
-        if calligraphy.is_calligraphic && (!images.is_empty() || native_quality < 0.95) {
+        // 5. Calligraphic script with raster image, moderate quality, or high confidence -> Require 300+ DPI OCR / Fusion
+        if calligraphy.is_calligraphic
+            && (!images.is_empty() || native_quality < 0.95 || calligraphy.confidence >= 0.75)
+        {
             return ArabicOcrDecision::RequireOcr {
                 preflight,
                 reason: format!(

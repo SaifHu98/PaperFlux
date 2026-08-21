@@ -473,6 +473,7 @@ PaperFlux/
 ## 🗺️ Roadmap & Status
 
 ### ✅ Implemented
+* [x] **Statistical Font Clustering & Nastaliq Detection**: Automated detection of cascading diagonal writing baselines, bounding box overlap density, and automated 300 DPI OCR escalation for Nastaliq and Diwani calligraphic scripts.
 * [x] **Multi-Page Table Stitching**: Native detection and merging of tables across page boundaries with header deduplication and RTL alignment.
 * [x] **Native Python FFI (`pyo3`)**: High-performance Python package (`paperflux`) with memory-buffer and file conversion APIs.
 * [x] **OpenAPI 3.0 & Async Worker Daemon**: REST microservice with `utoipa` OpenAPI schemas and asynchronous task queuing (`202 Accepted` / `/status/{task_id}`).
@@ -487,7 +488,7 @@ PaperFlux/
 * [x] UTF-8 multibyte integrity across Rust, Python, WASM, HTTP, and PHP 8.2+ CLI ProcessRunner.
 
 ### 🧪 Experimental
-* [ ] Statistical font clustering for Nastaliq calligraphic scripts.
+* [ ] Complex multi-layer mathematical formula tree reconstruction.
 
 ### 🚧 In Progress
 * [ ] Real-world multi-page PDF fixture corpus on disk.

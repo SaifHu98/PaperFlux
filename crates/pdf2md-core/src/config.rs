@@ -19,6 +19,7 @@ pub struct Config {
     pub ocr_provider: Option<Arc<dyn OCRProvider>>,
     pub ocr_dpi: Option<u32>,
     pub auto_calligraphy_dpi_boost: bool,
+    pub calligraphic_dpi_escalation: bool,
     pub security_limits: SecurityLimits,
     pub deterministic: bool,
     pub enable_caching: bool,
@@ -39,6 +40,7 @@ impl Default for Config {
             ocr_provider: None,
             ocr_dpi: None,
             auto_calligraphy_dpi_boost: true,
+            calligraphic_dpi_escalation: true,
             security_limits: SecurityLimits::default(),
             deterministic: true,
             enable_caching: true,
@@ -121,6 +123,13 @@ impl ConfigBuilder {
 
     pub fn auto_calligraphy_dpi_boost(mut self, boost: bool) -> Self {
         self.config.auto_calligraphy_dpi_boost = boost;
+        self.config.calligraphic_dpi_escalation = boost;
+        self
+    }
+
+    pub fn calligraphic_dpi_escalation(mut self, enabled: bool) -> Self {
+        self.config.calligraphic_dpi_escalation = enabled;
+        self.config.auto_calligraphy_dpi_boost = enabled;
         self
     }
 
